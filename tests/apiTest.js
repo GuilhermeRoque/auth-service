@@ -44,9 +44,9 @@ describe('GET /users', () => {
         .expect('Content-Type', /json/)
         .expect(200, done);
     });
-  });
+});
 
-  describe('GET /users/<id>', () => {
+describe('GET /users/<id>', () => {
     it('Get single user', (done) => {
         request(app)
         .get('/users/' + userCreated._id)
@@ -55,24 +55,27 @@ describe('GET /users', () => {
         .expect('Content-Type', /json/)
         .expect(200, done);
     });
-  });
+});
 
-  describe('POST /users/<id>/login', () => {
+describe('POST /users/<id>/login', () => {
     it('Login user', (done) => {
         request(app)
         .post('/users/'+ userCreated._id+'/login')
-        .send({
-            user:"Roque",
-            password:"123456"
-        })
+        .send(userTest)
         .expect('authorization', /./)
         .expect(204, done)
     });
-  });
+});
+
+describe('DELETE /users/<id>', () => {
+    it('Delete user', (done) => {
+        request(app)
+        .delete('/users/'+ userCreated._id)
+        .expect(204, done)
+    });
+});
 
 
-  after(() => {
-      return mongoose.connection.close()
-  })
-
-
+after(() => {
+    return mongoose.connection.close()
+})
