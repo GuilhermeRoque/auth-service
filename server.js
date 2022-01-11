@@ -2,34 +2,26 @@
 require('dotenv').config();
 
 const mongoose = require("mongoose")
-const express = require('express');
-const logger = require('morgan');
-const usersRouter = require("./users/usersController");
-const app = express(); 
+const app = require('./app'); 
+const http = require('http');
 
-
-app.use(logger('dev'));
-app.use(express.json());
-app.use(express.urlencoded({ extended: false }));
-app.use('/users', usersRouter);
+const server = http.createServer(app);
 
 mongoose.connection
 .on('error', console.log)
-.on('disconnected', connect)
-.once('open', () => {
-    const port = process.env.SERVER_PORT;
-    app.listen(port, () => console.log(`App listening on port ${port}`));
-});
+.on('disconnected', connectDB)
 
-// ENTRYPOINT
-connect();
- 
-function connect() {
+function connectDB(){
     return mongoose.connect(process.env.DB_URL, {
         user: process.env.DB_USERNAME,
         pass: process.env.DB_PASSWORD,
         dbName: process.env.DB_NAME,
         autoCreate: true,
         autoIndex: true
-    })   
-}
+    })
+} 
+
+const port = process.env.SERVER_PORT
+connectDB().then(server.listen(port, () => console.log(`Server listening on port ${port}`)))
+
+module.exports = server
