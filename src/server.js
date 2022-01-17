@@ -7,21 +7,14 @@ const http = require('http');
 
 const server = http.createServer(app);
 
-mongoose.connection
-.on('error', console.log)
-.on('disconnected', connectDB)
-
-function connectDB(){
-    return mongoose.connect(process.env.DB_URL, {
-        user: process.env.DB_USERNAME,
-        pass: process.env.DB_PASSWORD,
-        dbName: process.env.DB_NAME,
-        autoCreate: true,
-        autoIndex: true
-    })
-} 
-
-const port = process.env.SERVER_PORT
-connectDB().then(server.listen(port, () => console.log(`Server listening on port ${port}`)))
+mongoose.connect(process.env.DB_URL, {
+    user: process.env.DB_USERNAME,
+    pass: process.env.DB_PASSWORD,
+    dbName: process.env.DB_NAME,
+    autoCreate: true,
+    autoIndex: true
+})
+.then(() => server.listen(process.env.SERVER_PORT, console.log("Server listening on port", process.env.SERVER_PORT)))
+.catch(() => console.log("Error connecting to database"))
 
 module.exports = server
