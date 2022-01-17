@@ -1,0 +1,27 @@
+version: '3'
+services:
+  app:
+    build:
+      dockerfile: Dockerfile
+      context: .
+    image: guilhermeroque/auth-service
+    environment:
+      JWT_KEY: "45d239dd6d20d8e4c5919079a40e5ea6cf8d9ab0"
+      TOKEN_EXPIRATION_TIME: "15m"
+      DB_URL: "mongodb://mongo/"
+      DB_NAME: "auth-service"
+      DB_USERNAME: "myUserAdmin"
+      DB_PASSWORD: "password"
+      DB_HOST: "mongo"
+      SERVER_PORT: 3000
+      BCRYPT_SALT_ROUNDS: 12
+    ports:
+      - "3000:3000"
+    depends_on:
+      - mongo
+
+  mongo:
+    image: mongo
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: "myUserAdmin"
+      MONGO_INITDB_ROOT_PASSWORD: "password"

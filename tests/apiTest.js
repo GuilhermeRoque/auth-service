@@ -1,7 +1,7 @@
 require('dotenv').config();
 
 const request = require('supertest');
-const app = require('../app')
+const app = require('../src/app')
 const mongoose = require('mongoose');
 
 const userTest = {
@@ -24,7 +24,7 @@ before(()=>{
     }) 
 })   
 
-describe('POST /users/', () => {
+describe('User API resources Test', () => {
     it('Create user', (done) => {
         request(app)
         .post('/users/')
@@ -34,9 +34,7 @@ describe('POST /users/', () => {
             done(err)
         })
     });
-  });
-
-describe('GET /users', () => {
+    
     it('Get all users', (done) => {
         request(app)
         .get('/users')
@@ -44,9 +42,7 @@ describe('GET /users', () => {
         .expect('Content-Type', /json/)
         .expect(200, done);
     });
-});
-
-describe('GET /users/<id>', () => {
+    
     it('Get single user', (done) => {
         request(app)
         .get('/users/' + userCreated._id)
@@ -55,9 +51,7 @@ describe('GET /users/<id>', () => {
         .expect('Content-Type', /json/)
         .expect(200, done);
     });
-});
 
-describe('POST /users/<id>/login', () => {
     it('Login user', (done) => {
         request(app)
         .post('/users/'+ userCreated._id+'/login')
@@ -65,9 +59,7 @@ describe('POST /users/<id>/login', () => {
         .expect('authorization', /./)
         .expect(204, done)
     });
-});
 
-describe('DELETE /users/<id>', () => {
     it('Delete user', (done) => {
         request(app)
         .delete('/users/'+ userCreated._id)
