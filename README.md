@@ -1,24 +1,12 @@
-Create new EXPRESS app (https://expressjs.com/pt-br/starter/generator.html):
+# Auth-Service
+Serves users CRUD operations as also generates JWT for authentication.
 
-    $ npm install express-generator -g
-    $ express --view=pug myapp
-    $ npm install
-    $ yarn start #(just for test)
+API documentation at root path '/'
 
+Runs the app locally (its needed to set the env variables as also install mongodb):
 
-Install nodemon for dev (nodemon restarts the server when some change is detected):
-    
-    $ npm install nodemon --save-dev 
+    npm start
 
-
-Add the script option in 'packege.json' to run the server with nodemon:
-    
-    "start-dev": "nodemon ./bin/www"
-
-Run the server with nodemon for dev:
-    
-    yarn start-dev
-
-Create tables in database:
-    
-    node ./infra/tables.js
+Runs the app in docker containers exposing local port 3000 (docker-compose v3 is used):
+   
+    docker-compose run --build 

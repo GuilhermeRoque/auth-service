@@ -3,14 +3,14 @@ const bcrypt = require('bcrypt')
 const jwt = require('jsonwebtoken')
 
 module.exports = {
-    create : (async (req, res, next)=>{
+    create : (async (req, res, next) => {
         user = req.body
         user.hashPassword = await bcrypt.hash(req.body.password, Number(process.env.BCRYPT_SALT_ROUNDS))
         const userCreated = await model.create(req.body)
         res.status(201).send(userCreated)
     }),
     
-    login: (async (req, res, next)=>{
+    login: (async (req, res, next) => {
         const id =  req.params.id
         const user =  await model.findById(id)
         if (user){
@@ -42,7 +42,7 @@ module.exports = {
     
     }),
     
-    update: (async (req, res, next)=> {
+    update: (async (req, res, next) => {
         const id =  req.params.id
         const user =  await model.findById(id)
         user.name = req.body.name
@@ -50,7 +50,7 @@ module.exports = {
         res.status(204).send()
     }),
     
-    delete: (async (req, res, next)=>{
+    delete: (async (req, res, next) => {
         const id =  req.params.id
         const result =  await model.findById(id)
         await result.delete()
