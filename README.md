@@ -9,6 +9,6 @@ Runs the app locally (its needed to configure the environment):
 
 Runs the app in docker containers exposing local port 3000 (docker-compose v3 is used):
    
-    docker-compose run --build
+    docker-compose up --build
 
 Sample environment config file: **.env.sample**
