@@ -6,7 +6,7 @@ services:
       context: .
     image: guilhermeroque/auth-service
     environment:
-      JWT_KEY: "45d239dd6d20d8e4c5919079a40e5ea6cf8d9ab0"
+      GEN_SECRET: "45d239dd6d20d8e4c5919079a40e5ea6cf8d9ab0"
       TOKEN_EXPIRATION_TIME: "15m"
       DB_URL: "mongodb://mongo/"
       DB_NAME: "auth-service"

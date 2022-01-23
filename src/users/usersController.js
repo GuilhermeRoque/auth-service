@@ -5,7 +5,7 @@ const jwt = require('jsonwebtoken')
 module.exports = {
     create : (async (req, res, next) => {
         user = req.body
-        user.hashPassword = await bcrypt.hash(req.body.password, Number(process.env.BCRYPT_SALT_ROUNDS))
+        hashPassword = await bcrypt.hash(req.body.password, Number(process.env.BCRYPT_SALT_ROUNDS))
         const userCreated = await model.create(req.body)
         res.status(201).send(userCreated)
     }),
