@@ -30,10 +30,13 @@
             "schema": {
               "type": "object",
               "properties": {
-                "hashPassword": {
+                "password": {
                   "example": "any"
                 },
-                "password": {
+                "name": {
+                  "example": "any"
+                },
+                "email": {
                   "example": "any"
                 }
               }
@@ -43,6 +46,12 @@
         "responses": {
           "201": {
             "description": "Created"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "500": {
+            "description": "Internal Server Error"
           }
         }
       }
@@ -92,6 +101,9 @@
         "responses": {
           "204": {
             "description": "No Content"
+          },
+          "500": {
+            "description": "Internal Server Error"
           }
         }
       },

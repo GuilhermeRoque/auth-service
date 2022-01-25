@@ -5,8 +5,9 @@ const app = require('../src/app')
 const mongoose = require('mongoose');
 
 const userTest = {
-    user:"Roque",
-    password:"123456",
+    name:"Roque",
+    password:"1234567",
+    email:"roque@gmail.com"
 }
 
 let userCreated;
