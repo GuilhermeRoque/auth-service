@@ -2,29 +2,33 @@ const model = require('./usersModel')
 const bcrypt = require('bcrypt')
 const jwt = require('jsonwebtoken')
 
-// async function buildUser(req){
-//     return  {
-//     }
-// }
+
+async function getUser(req){
+    hashPassword = await bcrypt.hash(req.body.password, Number(process.env.BCRYPT_SALT_ROUNDS))
+    user = {
+        name: req.body.name,
+        email: req.body.email,
+        hashPassword: hashPassword        
+    }
+    return user
+}
+
+function sendError(error,res){
+    if (error.name == "ValidationError"){
+        res.status(400).send({message:error.message})
+    }else{
+        res.status(500).send()
+    }
+}
 
 module.exports = {
     create : (async (req, res, next) => {
         try {
-            hashPassword = await bcrypt.hash(req.body.password, Number(process.env.BCRYPT_SALT_ROUNDS))
-            user = {
-                name: req.body.name,
-                email: req.body.email,
-                hashPassword: hashPassword        
-            }
-            model.create(user,(err,userCreated) => {
-                if (err){
-                    res.status(400).send({message:err.message})
-                }else {
-                    res.status(201).send(userCreated)                
-                }
-            })
+            user = await getUser(req)
+            userCreated = await model.create(user)
+            res.status(201).send(userCreated)                
         } catch (error) {
-            res.status(500).send()
+            sendError(error,res)
         }
     }),
     
