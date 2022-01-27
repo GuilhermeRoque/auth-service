@@ -1,55 +1,34 @@
-const model = require('./usersModel')
+const User = require('./usersModel')
 const bcrypt = require('bcrypt')
 const jwt = require('jsonwebtoken')
-
-
-async function getUser(req){
-    hashPassword = await bcrypt.hash(req.body.password, Number(process.env.BCRYPT_SALT_ROUNDS))
-    user = {
-        name: req.body.name,
-        email: req.body.email,
-        hashPassword: hashPassword        
-    }
-    return user
-}
-
-function sendError(error,res){
-    if (error.name == "ValidationError"){
-        res.status(400).send({message:error.message})
-    }else{
-        res.status(500).send()
-    }
-}
 
 module.exports = {
     create : (async (req, res, next) => {
         try {
-            user = await getUser(req)
-            userCreated = await model.create(user)
+            const user = new User(req.body)
+            const userCreated = await user.save()
             res.status(201).send(userCreated)                
         } catch (error) {
-            sendError(error,res)
+            next(error)
         }
     }),
     
     update: (async (req, res, next) => {
         const id =  req.params.id
         try {
-            const user =  await model.findById(id)
+            const user =  await User.findById(id)
             user.name = req.body.name
             await user.save()
             res.status(204).send()                
         } catch (error) {
-            console.log(error)
             res.status(500).send()
         }
     }),
 
     login: (async (req, res, next) => {
-        const id =  req.params.id
-        const user =  await model.findById(id)
+        const user =  await User.findById(req.params.id)
         if (user){
-            const passwordIsValid = await bcrypt.compare(req.body.password, user.hashPassword)
+            const passwordIsValid = await bcrypt.compare(req.body.password, user.password)
             if (passwordIsValid){
                 const token = jwt.sign({id: user.id}, process.env.JWT_KEY, { expiresIn: process.env.TOKEN_EXPIRATION_TIME })
                 res.set("Authorization", token).status(204).send()        
@@ -62,26 +41,35 @@ module.exports = {
     }),
     
     getAll: (async (req, res, next) => {
-        const results = await model.find()
-        res.send(results)
+        const users = await User.find()
+        res.send(users)
     }),
     
     get: (async (req, res, next) => {
-        const id =  req.params.id
-        const result =  await model.findById(id)
-        if (!result){
+        const user =  await User.findById(req.params.id)
+        if (!user){
             res.status(404).send()
         }else{
-            res.send(result)    
+            res.send(user)    
         }
     
     }),
 
     delete: (async (req, res, next) => {
-        const id =  req.params.id
-        const result =  await model.findById(id)
-        await result.delete()
-        res.status(204).send()
-    })   
-
+        const user =  await User.findById(req.params.id)
+        if (!user){
+            res.status(404).send()
+        }else{
+            await result.delete()
+            res.status(204).send()
+        }
+    }),
+    
+    handleError:(async (err, req, res, next) => {
+        if (err.name == "ValidationError"){
+            res.status(400).send({error:err.message})
+        }else{
+            res.status(500).send()
+        }
+})
 }

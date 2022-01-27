@@ -23,35 +23,10 @@
       },
       "post": {
         "description": "",
-        "parameters": [
-          {
-            "name": "body",
-            "in": "body",
-            "schema": {
-              "type": "object",
-              "properties": {
-                "password": {
-                  "example": "any"
-                },
-                "name": {
-                  "example": "any"
-                },
-                "email": {
-                  "example": "any"
-                }
-              }
-            }
-          }
-        ],
+        "parameters": [],
         "responses": {
           "201": {
             "description": "Created"
-          },
-          "400": {
-            "description": "Bad Request"
-          },
-          "500": {
-            "description": "Internal Server Error"
           }
         }
       }

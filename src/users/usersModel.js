@@ -1,7 +1,7 @@
 const mongoose = require('mongoose');
 const emailValidator = require('email-validator')
-
-var userSchema = new mongoose.Schema({
+const bcrypt = require('bcrypt')
+const userSchema = new mongoose.Schema({
     name: {
         type: String, 
         required:true
@@ -11,12 +11,15 @@ var userSchema = new mongoose.Schema({
         required:true,
         validate:emailValidator.validate
     },
-    hashPassword: {
+    password: {
         type: String, 
         required:true
     },
-}, { collection: 'users' }
-);
+}, { collection: 'users' })
+
+userSchema.pre('save', async function() {
+    this.password = await bcrypt.hash(this.password, Number(process.env.BCRYPT_SALT_ROUNDS))
+  });
 
 
 module.exports = mongoose.model("User", userSchema)
