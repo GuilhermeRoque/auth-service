@@ -14,54 +14,73 @@ module.exports = {
     }),
     
     update: (async (req, res, next) => {
-        const id =  req.params.id
         try {
+            const id =  req.params.id
             const user =  await User.findById(id)
-            user.name = req.body.name
-            await user.save()
-            res.status(204).send()                
+            if(user){
+                user.name = req.body.name
+                await user.save()
+                res.status(204).send()                    
+            }else{
+                res.status(404).send()
+            }
         } catch (error) {
-            res.status(500).send()
+            next(error)
         }
     }),
 
     login: (async (req, res, next) => {
-        const user =  await User.findById(req.params.id)
-        if (user){
-            const passwordIsValid = await bcrypt.compare(req.body.password, user.password)
-            if (passwordIsValid){
-                const token = jwt.sign({id: user.id}, process.env.JWT_KEY, { expiresIn: process.env.TOKEN_EXPIRATION_TIME })
-                res.set("Authorization", token).status(204).send()        
+        try {
+            const user =  await User.findById(req.params.id)
+            if (user){
+                const passwordIsValid = await bcrypt.compare(req.body.password, user.password)
+                if (passwordIsValid){
+                    const token = jwt.sign({id: user.id}, process.env.JWT_KEY, { expiresIn: process.env.TOKEN_EXPIRATION_TIME })
+                    res.set("Authorization", token).status(204).send()        
+                }else{
+                    res.status(401).send()
+                }
             }else{
-                res.status(401).send()
-            }
-        }else{
-            res.status(404).send()
+                res.status(404).send()
+            }    
+        } catch (error) {
+            next(error)            
         }
     }),
     
     getAll: (async (req, res, next) => {
-        const users = await User.find()
-        res.send(users)
+        try {
+            const users = await User.find()
+            res.send(users)
+        } catch (error) {
+            next(error)            
+        }
     }),
     
     get: (async (req, res, next) => {
-        const user =  await User.findById(req.params.id)
-        if (!user){
-            res.status(404).send()
-        }else{
-            res.send(user)    
+        try {
+            const user =  await User.findById(req.params.id)
+            if (user){
+                res.send(user)    
+            }else{
+                res.status(404).send()
+            }   
+        } catch (error) {
+            next(error)            
         }
-    
     }),
 
     delete: (async (req, res, next) => {
-        const user =  await User.findById(req.params.id)
-        if (!user){
-            res.status(404).send()
-        }else{
-            await result.delete()
-            res.status(204).send()
+        try {
+            const user =  await User.findById(req.params.id)
+            if (user){
+                await result.delete()
+                res.status(204).send()
+            }else{
+                res.status(404).send()
+            }                
+        } catch (error) {
+            next(error)
         }
     }),
     
@@ -71,5 +90,5 @@ module.exports = {
         }else{
             res.status(500).send()
         }
-})
+    })
 }
