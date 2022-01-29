@@ -1,4 +1,5 @@
 require('dotenv').config();
+require('../src/auth/createKeys')
 
 const request = require('supertest');
 const app = require('../src/app')
