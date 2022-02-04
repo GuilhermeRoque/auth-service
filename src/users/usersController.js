@@ -39,7 +39,7 @@ module.exports = {
 
     login: (async (req, res, next) => {
         try {
-            const user =  await User.findById(req.params.id)
+            const user =  await User.findOne({email:req.body.email})
             if (user){
                 const passwordIsValid = await bcrypt.compare(req.body.password, user.password)
                 if (passwordIsValid){
