@@ -39,21 +39,27 @@ module.exports = {
 
     login: (async (req, res, next) => {
         try {
-            const user =  await User.findOne({email:req.body.email})
-            if (user){
-                const passwordIsValid = await bcrypt.compare(req.body.password, user.password)
-                if (passwordIsValid){
-                    const token = jwt.sign(
-                        {id: user.id}, 
-                        {key:privateKey, passphrase: process.env.GEN_SECRET}, 
-                        {algorithm: 'RS256', expiresIn: process.env.TOKEN_EXPIRATION_TIME})
-                        res.set("Authorization", token).status(204).send()        
-                }else{
-                    res.status(401).send()
-                }
+            email = req.body.email
+            password = req.body.password
+            if ((!email) | (!password)){
+                res.status(400).send()
             }else{
-                res.status(404).send()
-            }    
+                const user =  await User.findOne({email:email})
+                if (user){
+                    const passwordIsValid = await bcrypt.compare(password, user.password)
+                    if (passwordIsValid){
+                        const token = jwt.sign(
+                            {id: user.id}, 
+                            {key:privateKey, passphrase: process.env.GEN_SECRET}, 
+                            {algorithm: 'RS256', expiresIn: process.env.TOKEN_EXPIRATION_TIME})
+                            res.set("authorization", token).status(204).send()        
+                    }else{
+                        res.status(401).send()
+                    }
+                }else{
+                    res.status(404).send()
+                }        
+            }
         } catch (error) {
             console.log(error)
             next(error)            

@@ -5,7 +5,7 @@
     "title": "REST API",
     "description": ""
   },
-  "host": "localhost:3300",
+  "host": "localhost:3000",
   "basePath": "/",
   "schemes": [
     "http"
@@ -148,22 +148,19 @@
         }
       }
     },
-    "/users/{id}/login": {
+    "/users/login": {
       "post": {
         "description": "",
         "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          },
           {
             "name": "body",
             "in": "body",
             "schema": {
               "type": "object",
               "properties": {
+                "email":{
+                  "example":"name@email.com"
+                },
                 "password": {
                   "example": "password@123"
                 }

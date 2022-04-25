@@ -56,12 +56,14 @@ describe('User API resources Test', () => {
 
     it('Login user', (done) => {
         request(app)
-        .post('/users/'+ userCreated._id+'/login')
-        .send(userTest)
+        .post('/users/login/')
+        .send({
+            email: userTest.email,
+            password: userTest.password
+        })
         .expect('authorization', /./)
         .expect(204, done)
     });
-
     it('Delete user', (done) => {
         request(app)
         .delete('/users/'+ userCreated._id)

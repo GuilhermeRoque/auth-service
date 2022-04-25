@@ -28,6 +28,5 @@ jobs:
           DB_PASSWORD: "password"
           DB_HOST: "mongo"
           SERVER_PORT: 3000
-          BCRYPT_SALT_ROUNDS: 12
           PRIVATE_KEY: "private.key"
           PUBLIC_KEY: "public.pem"
