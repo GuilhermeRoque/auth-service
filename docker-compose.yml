@@ -2,17 +2,33 @@ version: '3'
 services:
   app:
     build:
-      dockerfile: Dockerfile
+      dockerfile: test.dockerfile
       context: .
-    image: guilhermeroque/auth-service
-    env_file: .env.sample
+    image: guilhermeroque/auth-service-test
+    environment:
+      - DB_URL=mongodb://mongo/
+      - DB_NAME=auth-service
+      - DB_USERNAME=myUserAdmin
+      - DB_PASSWORD=password
+      - DB_HOST=mongo
+      - SERVER_PORT=3000
+      - SWAGGER_HOST=localhost:5000
+    volumes:
+      - ./src:/root/src
     ports:
-      - "3000:3000"
+      - 5000:3000
     depends_on:
       - mongo
+    networks:
+      - test-network
 
   mongo:
-    image: mongo
-    environment:
-      MONGO_INITDB_ROOT_USERNAME: "myUserAdmin"
-      MONGO_INITDB_ROOT_PASSWORD: "password"
+    build:
+      dockerfile: mongodb.dockerfile
+      context: .
+    networks:
+      - test-network
+
+networks:
+  test-network:
+    driver: bridge
