@@ -52,7 +52,7 @@ module.exports = {
                             {id: user.id}, 
                             {key:privateKey, passphrase: process.env.GEN_SECRET}, 
                             {algorithm: 'RS256', expiresIn: process.env.TOKEN_EXPIRATION_TIME})
-                            res.set("authorization", token).status(204).send()        
+                            res.set("authorization", token).status(200).send()                             
                     }else{
                         res.status(401).send()
                     }
