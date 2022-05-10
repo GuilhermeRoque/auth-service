@@ -1,18 +1,9 @@
 const User = require('./usersModel')
-const bcrypt = require('bcrypt')
-const jwt = require('jsonwebtoken')
-const fs = require('fs')
-const privateKey = fs.readFileSync(process.env.PRIVATE_KEY, 'utf8')
+const jwt = require('../auth/jwt')
 
 module.exports = {
     create : (async (req, res, next) => {
         try {
-            // if(req.body.id){
-            //     const user =  await User.findById(req.body.id)
-            //     if(user){
-            //         return res.status(409).send()
-            //     }    
-            // }
             const user = new User(req.body)
             const userCreated = await user.save()
             res.status(201).send(userCreated)                    
@@ -44,21 +35,7 @@ module.exports = {
             if ((!email) | (!password)){
                 res.status(400).send()
             }else{
-                const user =  await User.findOne({email:email})
-                if (user){
-                    const passwordIsValid = await bcrypt.compare(password, user.password)
-                    if (passwordIsValid){
-                        const token = jwt.sign(
-                            {id: user.id}, 
-                            {key:privateKey, passphrase: process.env.GEN_SECRET}, 
-                            {algorithm: 'RS256', expiresIn: process.env.TOKEN_EXPIRATION_TIME})
-                            res.set("authorization", token).status(200).send()                             
-                    }else{
-                        res.status(401).send()
-                    }
-                }else{
-                    res.status(404).send()
-                }        
+                await jwt.sign(req, res, next)
             }
         } catch (error) {
             console.log(error)
