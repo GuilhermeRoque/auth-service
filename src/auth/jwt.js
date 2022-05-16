@@ -14,7 +14,7 @@ async function verify(req, res, next){
             if (err){
                 next(err)
             }else{
-                req.idUser = payload.id
+                req.user = payload.user
                 next()    
             }
         })
@@ -30,10 +30,10 @@ async function sign(req, res, next){
         const passwordIsValid = await bcrypt.compare(password, user.password)
         if (passwordIsValid){
             const token = jwt.sign(
-                {id: user.id}, 
+                {user: user.toJSON()}, //payload
                 {key:privateKey, passphrase: process.env.GEN_SECRET}, 
                 {algorithm: 'RS256', expiresIn: process.env.TOKEN_EXPIRATION_TIME})
-                res.set("Authorization", token).status(200).send()                             
+                res.status(200).send({token: token})                             
         }else{
             res.status(401).send()
         }

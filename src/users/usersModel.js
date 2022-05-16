@@ -1,6 +1,7 @@
 const mongoose = require('mongoose');
 const emailValidator = require('email-validator')
-const bcrypt = require('bcrypt')
+const bcrypt = require('bcrypt');
+const { ObjectId } = require('mongodb');
 const userSchema = new mongoose.Schema({
     name: {
         type: String, 
@@ -8,7 +9,7 @@ const userSchema = new mongoose.Schema({
     },
     lastName: {
         type: String, 
-        required:true
+        // required:true
     },
     email: {
         type: String, 
@@ -20,6 +21,8 @@ const userSchema = new mongoose.Schema({
         type: String, 
         required:true
     },
+    organizations: [{type: ObjectId, ref: "Organization"}]
+    
 }, { collection: 'users' })
 
 userSchema.pre('save', async function() {
