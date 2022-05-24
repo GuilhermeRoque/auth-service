@@ -3,6 +3,19 @@ const Organization = organization.OrganizationModel
 const OrganizationMember = organization.OrganizationMemberModel
 const User = require('../users/usersModel')
 
+const updateMembers = (organization) =>{
+    members = []
+    for (const member of organization.members){
+        members.push({
+            name: member.user.name,
+            email: member.user.email,
+            role: member.role,
+            status: member.status,
+        })
+    }
+    return members
+}
+
 module.exports = {
     create : (async (req, res, next) => {
         try {
@@ -19,7 +32,17 @@ module.exports = {
             const user = await User.findById(idUser)
             user.organizations.push(organizationCreated._id)
             await user.save()
-            res.status(201).send(organizationCreated)
+            members = [{
+                name: user.name,
+                email: user.email,
+                role: 'owner',
+                status: 'active'
+            }]
+            org = {
+                name: organization.name,
+                members: members
+            }
+            res.status(201).send(org)
         } catch (error) {
             next(error)
         }
@@ -66,10 +89,18 @@ module.exports = {
     getAll: (async (req, res, next) => {
         try {
             const user = await User.findById(req.user._id)
-            const organizations = await Organization.find({ '_id': { $in: user.organizations } })
+            const organizations = await Organization.find({ '_id': { $in: user.organizations } }).populate("members.user")
             if (organizations){
-                console.log(organizations)
-                res.send(organizations)
+                orgs = []
+                for (const organization of organizations){
+                    orgs.push({
+                        _id: organization._id,
+                        name: organization.name,
+                        members: updateMembers(organization)
+                    })
+                }
+                console.log(orgs)
+                res.send(orgs)
             }else{
                 res.status(404).send()
             }
@@ -81,25 +112,31 @@ module.exports = {
     inviteUser: (async (req, res, next) => {
         try {
             const organization =  await Organization.findById(req.params.id)
+            console.log(req.body)
             if (organization){
                 const email = req.body.email
-                const user =  await User.findOne({email:email})
-                if (user){
-                    const member = new OrganizationMember({
-                        user: user._id,
-                        role: req.body.role,
-                        status: 'invited'
-                    })
-                    organization.members.push(member)
-                    user.organizations.push(organization._id)
-                    await organization.save()
-                    await user.save()
-                    res.status(204).send()      
+                if (!email){
+                    res.status(400).send({message: "Email is undefined", value:{user: email, organization: req.params.id}})      
+                    
                 }else{
-                    res.status(404).send()
-                }             
+                    const user =  await User.findOne({email:email})
+                    if (user){
+                        const member = new OrganizationMember({
+                            user: user._id,
+                            role: req.body.role,
+                            status: 'invited'
+                        })
+                        organization.members.push(member)
+                        user.organizations.push(organization._id)
+                        await organization.save()
+                        await user.save()
+                        res.status(204).send()      
+                    }else{
+                        res.status(404).send({message: "User not found", value:email})
+                    }                 
+                }
             }else{
-                res.status(404).send()
+                res.status(404).send({message: "Organization not found", value: req.params.id})
             }   
         } catch (error) {
             next(error)            

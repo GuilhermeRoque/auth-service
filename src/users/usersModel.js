@@ -26,7 +26,10 @@ const userSchema = new mongoose.Schema({
 }, { collection: 'users' })
 
 userSchema.pre('save', async function() {
-    this.password = await bcrypt.hash(this.password, Number(12))
+    //fix this
+    if (!this.password.startsWith("$2b")){ 
+        this.password = await bcrypt.hash(this.password, Number(12))
+    }
   });
 
 

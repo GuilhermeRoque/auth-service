@@ -1,6 +1,6 @@
 const { ObjectId } = require('mongodb');
 const mongoose = require('mongoose');
-
+const {applicationSchema} = require('../application/applicationModel')
 const organizationMember = new mongoose.Schema({
     user: {
         type: ObjectId,
@@ -22,7 +22,8 @@ const organizationSchema = new mongoose.Schema({
         type: String, 
         required:true
     },
-    members: [organizationMember]
+    members: [organizationMember],
+    applications: [applicationSchema]
 
 }, { collection: 'organizations' })
 
