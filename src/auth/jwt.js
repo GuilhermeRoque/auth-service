@@ -1,5 +1,5 @@
 const jwt = require('jsonwebtoken');
-const User = require('../users/usersModel')
+const User = require('../resources/users/usersModel')
 const bcrypt = require('bcrypt')
 const fs = require('fs')
 const publicKey = fs.readFileSync(process.env.PUBLIC_KEY, 'utf8')
@@ -35,11 +35,12 @@ async function sign(req, res, next){
                 {key:privateKey, passphrase: process.env.GEN_SECRET}, 
                 {algorithm: 'RS256', expiresIn: process.env.TOKEN_EXPIRATION_TIME})
                 res.status(200).send({
-                    email: user.email,
                     _id: user._id,
+                    email: user.email,
                     name: user.name,
                     lastName: user.lastName,    
                     token: token,
+                    organizations: user.organizations
                 })                             
         }else{
             res.status(401).send()

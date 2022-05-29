@@ -1,9 +1,9 @@
 const logger = require('morgan');
-const usersRouter = require("./users/usersRoutes");
-const organizationsRouter = require("./organizations/organizationsRoutes");
+const usersRouter = require("./resources/users/usersRoutes");
+const organizationsRouter = require("./resources/organizations/organizationsRoutes");
 const express = require('express');
 const swaggerUi = require('swagger-ui-express')
-const swaggerFile = require('./doc/swagger_output.json')
+const swaggerFile = require('./resources/doc/swagger_output.json')
 swaggerFile.host = process.env.SWAGGER_HOST
 
 const app = express(); 

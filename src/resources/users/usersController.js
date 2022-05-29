@@ -1,5 +1,5 @@
 const User = require('./usersModel')
-const jwt = require('../auth/jwt')
+const jwt = require('../../auth/jwt')
 
 module.exports = {
     create : (async (req, res, next) => {

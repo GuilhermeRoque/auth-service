@@ -39,6 +39,7 @@ module.exports = {
                 status: 'active'
             }]
             org = {
+                _id: organizationCreated._id,
                 name: organization.name,
                 members: members
             }
@@ -96,6 +97,8 @@ module.exports = {
                     orgs.push({
                         _id: organization._id,
                         name: organization.name,
+                        organizationId: organization.organizationId,
+                        apiKey: organization.apiKey,
                         members: updateMembers(organization)
                     })
                 }

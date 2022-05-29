@@ -18,7 +18,15 @@ const organizationMember = new mongoose.Schema({
 },{ collection: 'organizationMembers' })
 
 const organizationSchema = new mongoose.Schema({
+    organizationId: {
+        type: String, 
+        required:true
+    },
     name: {
+        type: String, 
+        required:true
+    },
+    apiKey: {
         type: String, 
         required:true
     },
@@ -29,5 +37,5 @@ const organizationSchema = new mongoose.Schema({
 
 module.exports = {
     OrganizationModel: mongoose.model("Organization", organizationSchema),
-    OrganizationMemberModel: mongoose.model("organizationMembers", organizationMember),
+    OrganizationMemberModel: mongoose.model("OrganizationMember", organizationMember),
 }

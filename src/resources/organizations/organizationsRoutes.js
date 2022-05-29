@@ -1,6 +1,6 @@
 const express = require('express')
 const router = express.Router()
-const jwt = require('../auth/jwt')
+const jwt = require('../../auth/jwt')
 const organizationsController = require('./organizationsController')
 const applicationRouter = require("../application/applicationRoutes")
 
