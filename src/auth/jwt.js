@@ -8,7 +8,6 @@ const privateKey = fs.readFileSync(process.env.PRIVATE_KEY, 'utf8')
 async function verify(req, res, next){
     const authString = req.get('Authorization')
     const bearerType = "Bearer "
-    console.log("BODY in verify", req.body)
     if (authString && authString.startsWith(bearerType) && authString.length > bearerType.length){
         const token = authString.split(' ')[1]
         await jwt.verify(token, publicKey, (err, payload) =>{

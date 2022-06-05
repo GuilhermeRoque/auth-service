@@ -2,7 +2,11 @@ const { Map } = require('mongodb');
 const mongoose = require('mongoose');
 
 const deviceSchema = new mongoose.Schema({
-    netId: {
+    name: {
+        type: String, 
+        required:true
+    },
+    devId: {
         type: String, 
         required:true
     },

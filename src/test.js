@@ -21,14 +21,14 @@ const config = {
     headers: { Authorization: `Bearer ${token}` },
 };
 
-const appId = "org-teste"
+const appId = "org-teste5"
 const applicationPayload = {
     application:{
         ids: {
             application_id: appId
         },
-        name: "org-teste",
-        description: "org-teste"
+        name: "org-teste5",
+        description: "org-teste5"
     }
 }
 
@@ -38,7 +38,7 @@ const ttnApi = axios.create({
     baseURL: TTN_BASE_URL,
   });
 
-const app_key_path = get_ttn_path_api_keys(applicationPayload.application.ids.application_id)
+const app_key_path = get_ttn_path_api_keys(appId)
 
 
 const app_key_payload = {
@@ -46,13 +46,22 @@ const app_key_payload = {
     rights: [28, 29, 40, 53]
 }
 
-ttnApi.post(app_path , applicationPayload, config)
-    .then((resp) => {
-        console.log(resp)
-    })
-    .catch((error) => {
-        console.log(error)
-    })
+// ttnApi.post(app_path , applicationPayload, config)
+//     .then((resp) => {
+//         console.log(resp)
+//     })
+//     .catch((error) => {
+//         console.log(error)
+//     })
+
+ttnApi.post(app_key_path , app_key_payload, config)
+.then((resp) => {
+    console.log(resp)
+})
+.catch((error) => {
+    console.log(error.response.status)
+})
+
     // const app_key = await ttnApi.post(app_key_path, app_key_payload, config)
 
     // ttnApi.get(get_ttn_path_applications("organization-sensor-app") , config)

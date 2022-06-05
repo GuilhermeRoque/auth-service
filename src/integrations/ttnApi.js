@@ -1,13 +1,14 @@
+const crypto = require("crypto")
 const axios = require("axios")
 const path = require("path")
 
-
-
 const TTN_BASE_URL = "https://eu1.cloud.thethings.network"
+const TTN_API_PATH = "/api/v3"
+
 const TTN_PATH_ORG = "/organizations"
 const TTN_PATH_APPLICATIONS = "/applications"
+const TTN_PATH_DEVICES = '/devices'
 const TTN_PATH_API_KEYS = "/api-keys"
-const TTN_API_PATH = "/api/v3"
 
 const TTN_API = axios.create({
     baseURL: TTN_BASE_URL,
@@ -21,14 +22,31 @@ const __get_ttn_path_api_keys = (applicationId) => {
     return path.join(TTN_API_PATH, TTN_PATH_APPLICATIONS, applicationId, TTN_PATH_API_KEYS)
 }
 
-const addApplication = async (organization, application) => {
-    const token = organization.apiKey
-    const organizationId = organization.organizationId
-    const config = {
-        headers: { Authorization: `Bearer ${token}` },
-    };
-    
+const __get_ttn_path_devices = (applicationId) => {
+    return path.join(TTN_API_PATH, TTN_PATH_APPLICATIONS, applicationId, TTN_PATH_DEVICES)
+}
+
+const __get_auth_config = (apiKey) => {
+    return {headers: { Authorization: `Bearer ${apiKey}` }}
+}
+
+const get_random_local_eui64 = () => {
+    // rangom 64 bits
+    const buffer = crypto.randomBytes(8)
+    // set to local
+    buffer[0] |= (1 << 1)
+    buffer[0] &= ~(1 << 0)
+    return buffer.toString('hex')
+}
+
+const get_random_appkey = () => {
+    const buffer = crypto.randomBytes(16)
+    return buffer.toString('hex')
+}
+
+const addApplication = async (apiKey, organizationId, application) => {
     const appId = application.appId
+
     const applicationPayload = {
         application:{
             ids: {
@@ -41,21 +59,47 @@ const addApplication = async (organization, application) => {
 
     const appPath = __get_ttn_path_applications(organizationId) 
     
-    return TTN_API.post(appPath , applicationPayload, config)
+    return TTN_API.post(appPath , applicationPayload, __get_auth_config(apiKey))
 }
 
 
-const addApiKey = async (application) => {
-    const path = __get_ttn_path_api_keys(application.appId)
+const addApiKey = async (apiKey, applicationId) => {
+    const path = __get_ttn_path_api_keys(applicationId)
     const app_key_payload = {
         name: application.appId + '-key',
         rights: [28, 29, 40, 53]
     }
 
-    return TTN_API.post(path, app_key_payload)
+    return TTN_API.post(path, app_key_payload, __get_auth_config(apiKey))
 }
+
+const addDevice = async (apiKey, applicationId, device) => {
+    const path = __get_ttn_path_devices(applicationId)
+    const dev_eui = device.dev_eui?device.dev_eui: get_random_local_eui64()
+    const join_eui = device.app_eui?device.join_eui: "0000000000000000"
+    // const app_key = device.app_key?device.app_key: get_random_appkey()
+    
+    const device_payload = {
+        end_device: {
+            ids: {
+                device_id: device.devId,
+                dev_eui: dev_eui,
+                join_eui: join_eui,
+                // app_key: app_key
+                application_ids: {
+                    application_id: applicationId,
+                }
+            },
+            name: device.name
+        }            
+    }
+
+    return TTN_API.post(path, device_payload, __get_auth_config(apiKey))
+}
+
 
 module.exports = {
     addApplication,
-    addApiKey
+    addApiKey,
+    addDevice
 }

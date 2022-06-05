@@ -2,6 +2,7 @@ const organization = require('../organizations/organizationsModel')
 const Organization = organization.OrganizationModel
 const device = require('./deviceModel')
 const Device = device.deviceModel
+const ttnApi = require('../../integrations/ttnApi')
 
 module.exports = {
     create : (async (req, res, next) => {
@@ -24,6 +25,7 @@ module.exports = {
                 if (index > -1){
                     const application =  organization.applications[index]
                     const device = new Device(req.body)
+                    await ttnApi.addDevice(organization.apiKey, application.appId, device)
                     application.devices.push(device)
                     await organization.save()
                     res.status(201).send(device)      
