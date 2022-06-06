@@ -3,9 +3,9 @@ const Organization = organization.OrganizationModel
 const OrganizationMember = organization.OrganizationMemberModel
 const User = require('../users/usersModel')
 
-const updateMembers = (organization) =>{
+const updateMembers = (organizationMembers) =>{
     members = []
-    for (const member of organization.members){
+    for (const member of organizationMembers){
         members.push({
             name: member.user.name,
             email: member.user.email,
@@ -16,15 +16,24 @@ const updateMembers = (organization) =>{
     return members
 }
 
+const getOrganizationWithMembers = (organization) => {
+    return {
+        _id: organization._id,
+        name: organization.name,
+        organizationId: organization.organizationId,
+        apiKey: organization.apiKey,
+        members: updateMembers(organization.members)
+    }
+}
+
 module.exports = {
     create : (async (req, res, next) => {
         try {
             const organization = new Organization(req.body)
-            console.log(req.user)
             const idUser = req.user._id
             const member = new OrganizationMember({
                 user: idUser,
-                role: 'owner',
+                role: 'Dono',
                 status: 'active'
             })
             organization.members.push(member)            
@@ -35,7 +44,7 @@ module.exports = {
             members = [{
                 name: user.name,
                 email: user.email,
-                role: 'owner',
+                role: 'Dono',
                 status: 'active'
             }]
             org = {
@@ -94,15 +103,8 @@ module.exports = {
             if (organizations){
                 orgs = []
                 for (const organization of organizations){
-                    orgs.push({
-                        _id: organization._id,
-                        name: organization.name,
-                        organizationId: organization.organizationId,
-                        apiKey: organization.apiKey,
-                        members: updateMembers(organization)
-                    })
+                    orgs.push(getOrganizationWithMembers(organization))
                 }
-                console.log(orgs)
                 res.send(orgs)
             }else{
                 res.status(404).send()
@@ -115,7 +117,6 @@ module.exports = {
     inviteUser: (async (req, res, next) => {
         try {
             const organization =  await Organization.findById(req.params.id)
-            console.log(req.body)
             if (organization){
                 const email = req.body.email
                 if (!email){
@@ -133,7 +134,7 @@ module.exports = {
                         user.organizations.push(organization._id)
                         await organization.save()
                         await user.save()
-                        res.status(204).send()      
+                        res.status(201).send(getOrganizationWithMembers(organization))      
                     }else{
                         res.status(404).send({message: "User not found", value:email})
                     }                 
