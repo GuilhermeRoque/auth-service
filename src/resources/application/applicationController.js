@@ -3,7 +3,7 @@ const Organization = organization.OrganizationModel
 const application = require('./applicationModel')
 const Application = application.applicationModel
 // const ApiKey = application.apiKeyModel
-const ttnApi = require("../../integrations/ttnApi")
+const ttnApi = require("../../integrations/ttn/ttnApi")
 
 module.exports = {
     create : (async (req, res, next) => {
@@ -19,7 +19,7 @@ module.exports = {
                     }
                 )
             }else{
-                const respApp = await ttnApi.addApplication(organization.apiKey, req.body)
+                const respApp = await ttnApi.addApplication(organization.apiKey, organization.organizationId, req.body)
                 const app = respApp.data
                 const application = new Application({
                     name: app.name,

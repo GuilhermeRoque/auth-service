@@ -34,7 +34,7 @@ module.exports = {
             const member = new OrganizationMember({
                 user: idUser,
                 role: 'Dono',
-                status: 'active'
+                status: 'Ativo'
             })
             organization.members.push(member)            
             const organizationCreated = await organization.save()
@@ -45,7 +45,7 @@ module.exports = {
                 name: user.name,
                 email: user.email,
                 role: 'Dono',
-                status: 'active'
+                status: 'Ativo'
             }]
             org = {
                 _id: organizationCreated._id,
@@ -128,7 +128,7 @@ module.exports = {
                         const member = new OrganizationMember({
                             user: user._id,
                             role: req.body.role,
-                            status: 'invited'
+                            status: 'Convidado'
                         })
                         organization.members.push(member)
                         user.organizations.push(organization._id)
@@ -158,7 +158,7 @@ module.exports = {
                 });
                 if (index > -1){
                     const member =  organization.members[index]
-                    member.status = "active"
+                    member.status = "Ativo"
                     await organization.save()
                     res.status(204).send()      
                 }else{
