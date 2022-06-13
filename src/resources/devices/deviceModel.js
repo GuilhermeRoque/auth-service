@@ -1,5 +1,6 @@
-const { Map } = require('mongodb');
+const { Map, ObjectId } = require('mongodb');
 const mongoose = require('mongoose');
+const { loraProfileSchema } = require('../loraProfile/loraProfileModel')
 
 const deviceSchema = new mongoose.Schema({
     name: {
@@ -15,6 +16,10 @@ const deviceSchema = new mongoose.Schema({
         of: {},
         required:true,
     },
+    loraProfile: {
+        type: loraProfileSchema,
+        required: true
+    }
 
 }, { collection: 'device' })
 

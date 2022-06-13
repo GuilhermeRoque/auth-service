@@ -25,6 +25,7 @@ const applicationSchema = new mongoose.Schema({
     appId: {
         type: String, 
         required:true,
+        unique:true
     },
     devices: {
         type: [deviceSchema]

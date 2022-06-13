@@ -19,6 +19,7 @@ module.exports = {
                     }
                 )
             }else{
+                console.log("BODYYYYYYYYY\n\n", req.body, '\n\ns')
                 const respApp = await ttnApi.addApplication(organization.apiKey, organization.organizationId, req.body)
                 const app = respApp.data
                 const application = new Application({

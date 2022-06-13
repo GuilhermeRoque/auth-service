@@ -101,7 +101,7 @@ const addDevice = async (apiKey, applicationId, device) => {
                 application_server_address:application_server_address
             },
             name: device.name
-        }            
+        }
     }
     return TTN_API.post(path, device_payload, __get_auth_config(apiKey))
 }

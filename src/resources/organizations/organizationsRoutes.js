@@ -3,6 +3,7 @@ const router = express.Router()
 const jwt = require('../../auth/jwt')
 const organizationsController = require('./organizationsController')
 const applicationRouter = require("../application/applicationRoutes")
+const loraProfileRouter = require("../loraProfile/loraProfileRoutes")
 
 router.post('*', jwt.verify)
 router.get('*', jwt.verify)
@@ -14,6 +15,7 @@ router.post('/:id/join', organizationsController.acceptInviteUser)
 router.post('/:id/leave', organizationsController.removeUser)
 
 router.use("/:idOrganization/applications", applicationRouter)
+router.use("/:idOrganization/lora-profiles", loraProfileRouter)
 
 router.use(organizationsController.handleError)
 

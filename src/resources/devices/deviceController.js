@@ -27,12 +27,14 @@ module.exports = {
                 });
                 if (index > -1){
                     const application =  organization.applications[index]
-                    const device = new Device(req.body)
+                    const device = {...req.body}
+                    // device.loraProfile = device.loraProfile._id
+                    const newDevice = new Device(device)
                     // await ttnApi.addDevice(organization.apiKey, application.appId, device)
-                    await ttnApi.setDeviceNetworkSettings(organization.apiKey, application.appId, device.devId, req.body.config)
-                    // application.devices.push(device)
-                    // await organization.save()
-                    res.status(201).send(device)      
+                    // await ttnApi.setDeviceNetworkSettings(organization.apiKey, application.appId, device.devId, req.body.loraProfile)
+                    application.devices.push(newDevice)
+                    await organization.save()
+                    res.status(201).send(newDevice)      
                 }else{
                     res.status(404).send(
                         {
