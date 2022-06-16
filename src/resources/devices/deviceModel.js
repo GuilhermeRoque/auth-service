@@ -11,6 +11,17 @@ const deviceSchema = new mongoose.Schema({
         type: String, 
         required:true
     },
+    devEUI: {
+        type: String, 
+        required:true
+    },
+    joinEUI: {
+        type: String, 
+        required:true
+    },
+    appKey: {
+        type: String, 
+    },
     config: {
         type: Map, 
         of: {},

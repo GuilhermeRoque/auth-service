@@ -18,6 +18,10 @@ const loraProfileSchema = new mongoose.Schema({
         type: String, 
         required:true
     },
+    phyVersionId: {
+        type: String, 
+        required:true
+    },
     isClassB: {
         type: Boolean,
         required: true

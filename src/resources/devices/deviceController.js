@@ -3,9 +3,25 @@ const Organization = organization.OrganizationModel
 const device = require('./deviceModel')
 const Device = device.deviceModel
 const ttnApi = require('../../integrations/ttn/ttnApi')
+const crypto = require("crypto")
+
 // const yaml = require("js-yaml")
 // const fs = require('fs')
 // const freqPlans = yaml.load(fs.readFileSync('../../integrations/ttn/ttnFreqPlans.yml', 'utf8'))
+
+const get_random_local_eui64 = () => {
+    // random 64 bits
+    const buffer = crypto.randomBytes(8)
+    // set to local
+    buffer[0] |= (1 << 1)
+    buffer[0] &= ~(1 << 0)
+    return buffer.toString('hex')
+}
+
+const get_random_appkey = () => {
+    const buffer = crypto.randomBytes(16)
+    return buffer.toString('hex')
+}
 
 module.exports = {
     create : (async (req, res, next) => {
@@ -28,10 +44,23 @@ module.exports = {
                 if (index > -1){
                     const application =  organization.applications[index]
                     const device = {...req.body}
-                    // device.loraProfile = device.loraProfile._id
+
+                    // TODO: Move this to Model or Front-End?
+                    device.devEUI = device.devEUI?device.devEUI: get_random_local_eui64()
+                    device.joinEUI = device.joinEUI?device.joinEUI: "0000000000000000"
+                    device.appKey = device.appKey?device.appKey: get_random_appkey()
+                        
+                    // console.log('device', device)
                     const newDevice = new Device(device)
-                    // await ttnApi.addDevice(organization.apiKey, application.appId, device)
-                    // await ttnApi.setDeviceNetworkSettings(organization.apiKey, application.appId, device.devId, req.body.loraProfile)
+                    // console.log('newDevice', newDevice)
+                    
+
+                    let resp = await ttnApi.addDevice(organization.apiKey, application.appId, newDevice)
+                    console.log("addDevice", resp.status, resp.data)
+                    resp = await ttnApi.setDeviceJoinSettings(organization.apiKey, application.appId, device.devId, device)
+                    console.log("setDeviceJoinSettings", resp.status, resp.data)
+                    resp = await ttnApi.setDeviceNetworkSettings(organization.apiKey, application.appId, device.devId, device)
+                    console.log("setDeviceNetworkSettings", resp.status, resp.data)
                     application.devices.push(newDevice)
                     await organization.save()
                     res.status(201).send(newDevice)      
@@ -49,7 +78,8 @@ module.exports = {
 
             }
         } catch (error) {
-            next(error)
+            console.log("error.data", error.response.data.details, "\n\n")
+            next("error")
         }
     }),
 

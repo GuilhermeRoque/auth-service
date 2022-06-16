@@ -2,6 +2,7 @@ const { ObjectId } = require('mongodb');
 const mongoose = require('mongoose');
 const { applicationSchema } = require('../application/applicationModel')
 const { loraProfileSchema } = require('../loraProfile/loraProfileModel')
+const { serviceProfileSchema } = require('../serviceProfile/serviceProfileModel')
 
 const organizationMember = new mongoose.Schema({
     user: {
@@ -35,7 +36,8 @@ const organizationSchema = new mongoose.Schema({
     },
     members: [organizationMember],
     applications: [applicationSchema],
-    loraProfiles: [loraProfileSchema]
+    loraProfiles: [loraProfileSchema],
+    serviceProfiles: [serviceProfileSchema]
 
 }, { collection: 'organizations' })
 
