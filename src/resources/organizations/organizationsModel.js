@@ -32,7 +32,6 @@ const organizationSchema = new mongoose.Schema({
     },
     apiKey: {
         type: String, 
-        required:true
     },
     members: [organizationMember],
     applications: [applicationSchema],

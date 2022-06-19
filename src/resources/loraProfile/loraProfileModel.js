@@ -14,12 +14,12 @@ const loraProfileSchema = new mongoose.Schema({
         type: String, 
         required:true
     },
-    macVersionId: {
-        type: String, 
+    macVersion: {
+        type: Number, 
         required:true
     },
-    phyVersionId: {
-        type: String, 
+    phyVersion: {
+        type: Number, 
         required:true
     },
     isClassB: {

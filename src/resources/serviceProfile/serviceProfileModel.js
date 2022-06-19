@@ -19,7 +19,7 @@ const serviceProfileSchema = new mongoose.Schema({
         required:true
     },
     channelParam: {
-        type: Number, 
+        type: Number,
     },
     acquisition: {
         type: Number,

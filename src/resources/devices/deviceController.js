@@ -48,27 +48,25 @@ module.exports = {
                 if (index > -1){
                     const application =  organization.applications[index]
                     const device = {...req.body}
-                    device.loraProfileId = device.loraProfile._id
-                    device.serviceProfileId = device.serviceProfile._id
-                    device.loraProfile = device.loraProfile.loraProfileId
-                    device.serviceProfile = device.serviceProfile.serviceProfileId
 
                     // TODO: Move this to Model or Front-End?
                     device.devEUI = device.devEUI?device.devEUI: get_random_local_eui64()
                     device.joinEUI = device.joinEUI?device.joinEUI: "0000000000000000"
                     device.appKey = device.appKey?device.appKey: get_random_appkey()
-                        
-                    // console.log('device', device)
-                    const newDevice = new Device(device)
-                    // console.log('newDevice', newDevice)
                     
 
-                    // let resp = await ttnApi.addDevice(organization.apiKey, application.appId, newDevice)
-                    // console.log("addDevice", resp.status, resp.data)
-                    // resp = await ttnApi.setDeviceJoinSettings(organization.apiKey, application.appId, device.devId, device)
-                    // console.log("setDeviceJoinSettings", resp.status, resp.data)
-                    // resp = await ttnApi.setDeviceNetworkSettings(organization.apiKey, application.appId, device.devId, device)
-                    // console.log("setDeviceNetworkSettings", resp.status, resp.data)
+                    let resp = await ttnApi.addDevice(application.appId, device)
+                    console.log("addDevice", resp.status, resp.data)
+                    resp = await ttnApi.setDeviceJoinSettings(application.appId, device.devId, device)
+                    console.log("setDeviceJoinSettings", resp.status, resp.data)
+                    resp = await ttnApi.setDeviceNetworkSettings(application.appId, device)
+                    console.log("setDeviceNetworkSettings", resp.status, resp.data)
+
+                    device.loraProfileId = device.loraProfile._id
+                    device.serviceProfileId = device.serviceProfile._id
+                    device.loraProfile = device.loraProfile.loraProfileId
+                    device.serviceProfile = device.serviceProfile.serviceProfileId
+                    const newDevice = new Device(device)
                     application.devices.push(newDevice)
                     await organization.save()
                     res.status(201).send(newDevice)      
@@ -86,8 +84,8 @@ module.exports = {
 
             }
         } catch (error) {
-            console.log("error.data", error, "\n\n")
-            // esponse.data.details
+            // console.log("error.data", error.response.data.details, "\n\n")   
+            console.log(error)         
             next("error")
         }
     }),

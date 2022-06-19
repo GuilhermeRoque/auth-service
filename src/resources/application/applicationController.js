@@ -19,12 +19,13 @@ module.exports = {
                     }
                 )
             }else{
-                console.log("BODYYYYYYYYY\n\n", req.body, '\n\ns')
-                const respApp = await ttnApi.addApplication(organization.apiKey, organization.organizationId, req.body)
-                const app = respApp.data
+                // console.log("BODYYYYYYYYY\n\n", req.body, '\n\ns')
+                const app = req.body
+                // await ttnApi.addOrganization(organization)
+                await ttnApi.addApplication(app)
                 const application = new Application({
                     name: app.name,
-                    appId: app.ids.application_id,
+                    appId: app.appId,
                     description: app.description,
                     
                 })                
