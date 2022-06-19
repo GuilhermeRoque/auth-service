@@ -11,18 +11,22 @@ const serviceProfileSchema = new mongoose.Schema({
         required:true
     },
     dataType: {
-        type: String, 
+        type: Number, 
         required:true
     },
     channelType: {
-        type: String, 
+        type: Number, 
         required:true
     },
     channelParam: {
-        type: String, 
+        type: Number, 
     },
     acquisition: {
-        type: String,
+        type: Number,
+        required: true
+    },
+    period: {
+        type: Number,
         required: true
     }
 

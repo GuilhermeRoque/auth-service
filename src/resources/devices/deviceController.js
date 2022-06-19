@@ -1,9 +1,13 @@
-const organization = require('../organizations/organizationsModel')
-const Organization = organization.OrganizationModel
-const device = require('./deviceModel')
-const Device = device.deviceModel
-const ttnApi = require('../../integrations/ttn/ttnApi')
 const crypto = require("crypto")
+const loraProfile = require("../loraProfile/loraProfileModel")
+const serviceProfile = require("../serviceProfile/serviceProfileModel") 
+const organization = require('../organizations/organizationsModel')
+const device = require('./deviceModel')
+const ttnApi = require('../../integrations/ttn/ttnApi')
+const Organization = organization.OrganizationModel
+const Device = device.deviceModel
+const LoraProfile = loraProfile.loraProfileModel
+const ServiceProfile = serviceProfile.serviceProfileModel
 
 // const yaml = require("js-yaml")
 // const fs = require('fs')
@@ -44,6 +48,10 @@ module.exports = {
                 if (index > -1){
                     const application =  organization.applications[index]
                     const device = {...req.body}
+                    device.loraProfileId = device.loraProfile._id
+                    device.serviceProfileId = device.serviceProfile._id
+                    device.loraProfile = device.loraProfile.loraProfileId
+                    device.serviceProfile = device.serviceProfile.serviceProfileId
 
                     // TODO: Move this to Model or Front-End?
                     device.devEUI = device.devEUI?device.devEUI: get_random_local_eui64()
@@ -55,12 +63,12 @@ module.exports = {
                     // console.log('newDevice', newDevice)
                     
 
-                    let resp = await ttnApi.addDevice(organization.apiKey, application.appId, newDevice)
-                    console.log("addDevice", resp.status, resp.data)
-                    resp = await ttnApi.setDeviceJoinSettings(organization.apiKey, application.appId, device.devId, device)
-                    console.log("setDeviceJoinSettings", resp.status, resp.data)
-                    resp = await ttnApi.setDeviceNetworkSettings(organization.apiKey, application.appId, device.devId, device)
-                    console.log("setDeviceNetworkSettings", resp.status, resp.data)
+                    // let resp = await ttnApi.addDevice(organization.apiKey, application.appId, newDevice)
+                    // console.log("addDevice", resp.status, resp.data)
+                    // resp = await ttnApi.setDeviceJoinSettings(organization.apiKey, application.appId, device.devId, device)
+                    // console.log("setDeviceJoinSettings", resp.status, resp.data)
+                    // resp = await ttnApi.setDeviceNetworkSettings(organization.apiKey, application.appId, device.devId, device)
+                    // console.log("setDeviceNetworkSettings", resp.status, resp.data)
                     application.devices.push(newDevice)
                     await organization.save()
                     res.status(201).send(newDevice)      
@@ -78,23 +86,9 @@ module.exports = {
 
             }
         } catch (error) {
-            console.log("error.data", error.response.data.details, "\n\n")
+            console.log("error.data", error, "\n\n")
+            // esponse.data.details
             next("error")
         }
     }),
-
-    // TODO: Serve it as static content
-    // getNetworkOptions: (async (req, res, next) => {
-    //     res.send({
-    //         frequencyPlans: freqPlans,
-    //         loraWanVersions: [
-    //             {name: "Especificação v1.0", value: 1},
-    //             {name: "Especificação v1.0.1", value: 2},
-    //             {name: "Especificação v1.0.2", value: 3},
-    //             {name: "Especificação v1.1", value: 4},
-    //             {name: "Especificação v1.0.3", value: 5},
-    //             {name: "Especificação v1.0.4", value: 6},
-    //        ]
-    //     })
-    // })
 }

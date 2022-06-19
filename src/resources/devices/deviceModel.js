@@ -1,6 +1,5 @@
-const { Map, ObjectId } = require('mongodb');
+const { ObjectId } = require('mongodb');
 const mongoose = require('mongoose');
-const { loraProfileSchema } = require('../loraProfile/loraProfileModel')
 
 const deviceSchema = new mongoose.Schema({
     name: {
@@ -13,25 +12,34 @@ const deviceSchema = new mongoose.Schema({
     },
     devEUI: {
         type: String, 
-        required:true
+        required:true,
+        unique: true
     },
     joinEUI: {
         type: String, 
-        required:true
+        required:true       
     },
     appKey: {
         type: String, 
     },
-    config: {
-        type: Map, 
-        of: {},
-        required:true,
-    },
     loraProfile: {
-        type: loraProfileSchema,
-        required: true
+        type: String,
+        required: true,
+    },
+    loraProfileId: {
+        type: ObjectId,
+        required: true,
+        ref: 'LoraProfile'
+    },
+    serviceProfileId: {
+        type: ObjectId,
+        required: true,
+        ref: 'ServiceProfile'
+    },
+    serviceProfile: {
+        type: String,
+        required:true,
     }
-
 }, { collection: 'device' })
 
 module.exports = {
