@@ -54,22 +54,30 @@ module.exports = {
                     device.joinEUI = device.joinEUI?device.joinEUI: "0000000000000000"
                     device.appKey = device.appKey?device.appKey: get_random_appkey()
                     
-
-                    let resp = await ttnApi.addDevice(application.appId, device)
-                    console.log("addDevice", resp.status, resp.data)
-                    resp = await ttnApi.setDeviceJoinSettings(application.appId, device.devId, device)
-                    console.log("setDeviceJoinSettings", resp.status, resp.data)
-                    resp = await ttnApi.setDeviceNetworkSettings(application.appId, device)
-                    console.log("setDeviceNetworkSettings", resp.status, resp.data)
-
-                    device.loraProfileId = device.loraProfile._id
-                    device.serviceProfileId = device.serviceProfile._id
-                    device.loraProfile = device.loraProfile.loraProfileId
-                    device.serviceProfile = device.serviceProfile.serviceProfileId
-                    const newDevice = new Device(device)
+                    const devie_to_add = {...device}                        
+                    devie_to_add.loraProfileId = devie_to_add.loraProfile._id
+                    devie_to_add.serviceProfileId = devie_to_add.serviceProfile._id
+                    devie_to_add.loraProfile = devie_to_add.loraProfile.loraProfileId
+                    devie_to_add.serviceProfile = devie_to_add.serviceProfile.serviceProfileId
+                    const newDevice = new Device(devie_to_add)
                     application.devices.push(newDevice)
                     await organization.save()
-                    res.status(201).send(newDevice)      
+                    
+                    let respStatus = 201
+                    try {                        
+                        let resp = await ttnApi.addDevice(application.appId, device)
+                        console.log("addDevice", resp.status, resp.data)
+                        resp = await ttnApi.setDeviceJoinSettings(application.appId, device.devId, device)
+                        console.log("setDeviceJoinSettings", resp.status, resp.data)
+                        resp = await ttnApi.setDeviceNetworkSettings(application.appId, device)
+                        console.log("setDeviceNetworkSettings", resp.status, resp.data)    
+                    } catch (error) {
+                        console.log(error)
+                        respStatus = 202
+                    }
+
+                    res.status(respStatus).send(newDevice)      
+
                 }else{
                     res.status(404).send(
                         {
