@@ -3,6 +3,6 @@ const router = express.Router({mergeParams:true})
 const deviceController = require('./deviceController')
 
 router.post('/', deviceController.create)
-// router.get('/network-options', deviceController.getNetworkOptions)
+router.put('/:idDevice', deviceController.update)
 
 module.exports = router;
