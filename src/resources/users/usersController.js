@@ -1,8 +1,8 @@
 const User = require('./usersModel')
-const jwt = require('../../auth/jwt')
 
 module.exports = {
     create : (async (req, res, next) => {
+        console.log("11111111")
         try {
             const user = new User(req.body)
             const userCreated = await user.save()
@@ -13,6 +13,7 @@ module.exports = {
     }),
     
     update: (async (req, res, next) => {
+        console.log("12222222")
         try {
             const id =  req.params.id
             const user =  await User.findById(id)
@@ -27,23 +28,9 @@ module.exports = {
             next(error)
         }
     }),
-
-    login: (async (req, res, next) => {
-        try {
-            email = req.body.email
-            password = req.body.password
-            if ((!email) | (!password)){
-                res.status(400).send()
-            }else{
-                await jwt.sign(req, res, next)
-            }
-        } catch (error) {
-            console.log(error)
-            next(error)            
-        }
-    }),
     
     getAll: (async (req, res, next) => {
+        console.log("55555")
         try {
             const users = await User.find()
             res.send(users)
@@ -52,20 +39,30 @@ module.exports = {
         }
     }),
     
+    skip: (async (req, res, next) => {
+        res.status(200).send()
+    }),
+
     get: (async (req, res, next) => {
-        try {
-            const user =  await User.findById(req.params.id)
-            if (user){
-                res.send(user)    
-            }else{
-                res.status(404).send()
-            }   
-        } catch (error) {
-            next(error)            
+        console.log("USER GET CONTROLLER", req.params.id, !req.params.id)
+        if (!req.params.id){
+            res.status(400).send({message: "ID param is needed"})
+        }else{
+            try {
+                const user =  await User.findById(req.params.id)
+                if (user){
+                    res.send(user)    
+                }else{
+                    res.status(404).send()
+                }   
+            } catch (error) {
+                next(error)            
+            }    
         }
     }),
 
     delete: (async (req, res, next) => {
+        console.log("USER DELETE CONTROLLER", req.params.id, !req.params.id)
         try {
             const user =  await User.findById(req.params.id)
             if (user){
@@ -80,6 +77,7 @@ module.exports = {
     }),
     
     handleError:(async (err, req, res, next) => {
+        console.log("888888")
         console.log(err)
         if (err.name == "ValidationError"){
             res.status(400).send({error:err.message})

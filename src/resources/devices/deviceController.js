@@ -6,8 +6,8 @@ const device = require('./deviceModel')
 const ttnApi = require('../../integrations/ttn/ttnApi')
 const Organization = organization.OrganizationModel
 const Device = device.deviceModel
-const LoraProfile = loraProfile.loraProfileModel
-const ServiceProfile = serviceProfile.serviceProfileModel
+// const LoraProfile = loraProfile.loraProfileModel
+// const ServiceProfile = serviceProfile.serviceProfileModel
 
 // const yaml = require("js-yaml")
 // const fs = require('fs')

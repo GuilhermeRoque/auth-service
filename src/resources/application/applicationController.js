@@ -2,8 +2,9 @@ const organization = require('../organizations/organizationsModel')
 const Organization = organization.OrganizationModel
 const application = require('./applicationModel')
 const Application = application.applicationModel
-// const ApiKey = application.apiKeyModel
+const FormData = require('form-data');
 const ttnApi = require("../../integrations/ttn/ttnApi")
+const axios = require("axios")
 
 module.exports = {
     create : (async (req, res, next) => {
@@ -19,9 +20,7 @@ module.exports = {
                     }
                 )
             }else{
-                // console.log("BODYYYYYYYYY\n\n", req.body, '\n\ns')
                 const app = req.body
-                // await ttnApi.addOrganization(organization)
                 await ttnApi.addApplication(app)
                 const application = new Application({
                     name: app.name,
@@ -29,22 +28,15 @@ module.exports = {
                     description: app.description,
                     
                 })                
-
-                // const respAppKey = await ttnApi.addApiKey(organization, application)
-                // const appKey = respAppKey.data
-                
-                // const apiKey = new ApiKey(
-                //     {
-                //         keyId: appKey.id,
-                //         name: appKey.name,
-                //         key: appKey.key,    
-                //     }
-                // )
-                // application.apiKey = apiKey
-
                 organization.applications.push(application)
+                const applicationNames = []
+                for(const app of organization.applications){
+                    applicationNames.push(app.name)
+                }
+                const _data = new FormData()
+                _data.append("name", applicationNames)
+                await axios.post(process.env.DEVICE_LISTENER, _data)
                 await organization.save()
-
                 res.status(201).send(application)
             }
         } catch (error) {
