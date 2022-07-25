@@ -4,6 +4,7 @@ require('dotenv').config();
 const mongoose = require("mongoose")
 const app = require('./app'); 
 const http = require('http');
+const redisClient = require("./auth/redisClient")
 
 const server = http.createServer(app);
 
@@ -12,6 +13,11 @@ console.log("  process.env.DB_URL",process.env.DB_URL)
 console.log("  process.env.DB_USERNAME",process.env.DB_USERNAME)
 console.log("  process.env.DB_PASSWORD",process.env.DB_PASSWORD)
 console.log("  process.env.DB_NAME",process.env.DB_NAME)
+
+redisClient.redisClient.connect()
+    .then(() => console.log("Connected to REDIS"))
+    .catch(() => console.log("Could'nt connect to REDIS"))
+
 mongoose.connect(process.env.DB_URL, {
     user: process.env.DB_USERNAME,
     pass: process.env.DB_PASSWORD,

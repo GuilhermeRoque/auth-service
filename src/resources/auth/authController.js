@@ -25,5 +25,15 @@ module.exports = {
             console.log(error)
             next(error)            
         }
+    }),
+
+    logout: (async (req, res, next) => {
+        console.log("LOGOUT TOKENS")
+        try {
+            await jwt.signout(req, res, next)
+            res.sendStatus(200)
+        } catch (error) {
+           next(error) 
+        }
     })
 }

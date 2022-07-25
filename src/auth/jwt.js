@@ -1,19 +1,30 @@
 const jwt = require('jsonwebtoken');
 const User = require('../resources/users/usersModel')
 const bcrypt = require('bcrypt')
+const redisClient = require('./redisClient')
 
 const ACCESS_TOKEN_TIMEOUT = '300s'
 const REFRESH_TOKEN_TIMEOUT = '1d'
 
-async function verify(req, res, next){
+const __getToken = (req) => {
     const authString = req.get('Authorization')
     const bearerType = "Bearer "
-    console.log("VERIFYING TOKEN")
     if (authString && authString.startsWith(bearerType) && authString.length > bearerType.length){
         const token = authString.split(' ')[1]
-        jwt.verify(token,process.env.ACCESS_TOKEN_SECRET, (err, payload) =>{
+        return token
+    }
+    return null
+}
+
+async function verify(req, res, next){
+    console.log("VERIFYING TOKEN")
+    const token = __getToken(req)
+    if (token){
+        jwt.verify(token,process.env.ACCESS_TOKEN_SECRET, async (err, payload) => {
             if (err) return res.sendStatus(403); //invalid token
             else{
+                const denyToken = await redisClient.getDenyList(token)
+                if (denyToken) return res.sendStatus(403)
                 console.log("PAYLOAD: ", payload)
                 req.user = payload.user
                 next()    
@@ -48,7 +59,7 @@ async function sign(req, res, next){
                     refreshToken, 
                     { 
                         httpOnly: true, 
-                        secure: true, 
+                        // secure: true, 
                         sameSite: 'none', 
                         maxAge: 24 * 60 * 60 * 1000 
                     }
@@ -80,8 +91,10 @@ async function refresh(req, res, next){
     jwt.verify(
         refreshToken,
         process.env.REFRESH_TOKEN_SECRET,
-        (err, decoded) => {
+        async (err, decoded) => {
             if (err) return res.sendStatus(403);
+            const denyToken = await redisClient.getDenyList(refreshToken)
+            if (denyToken) return res.sendStatus(403)
             const accessToken = jwt.sign(
                 {user: {...decoded.user}},
                 process.env.ACCESS_TOKEN_SECRET,
@@ -92,8 +105,29 @@ async function refresh(req, res, next){
     );    
 }
 
+async function signout(req, res, next){
+    const cookies = req.cookies;
+    const refreshToken = cookies.jwt;
+    if(refreshToken){
+        jwt.verify(
+            refreshToken,
+            process.env.REFRESH_TOKEN_SECRET,
+            async (err, decoded) => {
+                if (!err) await redisClient.pushDenyList(refreshToken)
+            }
+        )    
+    }
+    const accessToken = __getToken(req)
+    if(accessToken){
+        jwt.verify(accessToken, process.env.ACCESS_TOKEN_SECRET, async (err, payload) => {
+            if (!err) await redisClient.pushDenyList(accessToken)
+        })
+    }
+}
+
 module.exports = {
     verify: verify,
     sign: sign,
-    refresh: refresh
+    refresh: refresh,
+    signout: signout
 }
