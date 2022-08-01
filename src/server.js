@@ -4,7 +4,7 @@ require('dotenv').config();
 const mongoose = require("mongoose")
 const app = require('./app'); 
 const http = require('http');
-const redisClient = require("./auth/redisClient")
+const redisClient = require("./resources/auth/redisClient")
 
 const server = http.createServer(app);
 

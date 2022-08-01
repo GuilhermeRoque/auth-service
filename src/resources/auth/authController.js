@@ -1,4 +1,4 @@
-const jwt = require('../../auth/jwt')
+const jwt = require('./jwt')
 
 module.exports = {
     login: (async (req, res, next) => {

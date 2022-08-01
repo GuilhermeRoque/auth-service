@@ -5,17 +5,17 @@ const { ObjectId } = require('mongodb');
 const userSchema = new mongoose.Schema({
     name: {
         type: String, 
-        required:true
+        required: true
     },
     lastName: {
         type: String, 
-        // required:true
+        required: true
     },
     email: {
         type: String, 
-        required:true,
-        unique:true,
-        validate:emailValidator.validate
+        required: true,
+        unique: true,
+        validate: [emailValidator.validate, "Expected email format"]
     },
     password: {
         type: String, 
@@ -25,12 +25,15 @@ const userSchema = new mongoose.Schema({
     
 }, { collection: 'users' })
 
-userSchema.pre('save', async function() {
-    //fix this
-    if (!this.password.startsWith("$2b")){ 
-        this.password = await bcrypt.hash(this.password, Number(12))
-    }
-  });
 
+userSchema.pre('save', async function() {
+    const hashPassword = await bcrypt.hash(this.password, Number(12))
+    console.log("Generated hash for password", this.password, hashPassword)
+    this.password = hashPassword
+});
+
+userSchema.pre('updateOne', async function() {
+    this.options.runValidators = true;
+});
 
 module.exports = mongoose.model("User", userSchema)

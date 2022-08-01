@@ -195,6 +195,38 @@ module.exports = {
         }
     }),
 
+    subDocuments: (async (req, res, next) => {
+        try {
+            const organization =  await Organization.findById(req.params.id)
+            if (organization){
+                const idUser = req.user._id
+                const index = organization.members.findIndex(member => {
+                    return member.user == idUser;
+                });
+                if (index > -1){
+                    const subDocument = req.params.subDocument
+                    const subDocuments = ["applications", "lora-profiles", "service-profiles"]
+                    if(subDocuments.includes(subDocument)){
+
+                        // proxy request here
+
+                    }else{
+                        res.status(404).send({message: "Resource unknown"})
+                    }
+                    organization.members.splice(index, 1)
+                    await organization.save()
+
+                }else{
+                    // user not belongs to organization
+                    res.status(403).send()
+                }             
+            }else{
+                res.status(404).send({message: "Organization not found"})
+            }   
+        } catch (error) {
+            next(error)            
+        }
+    }),
     handleError:(async (err, req, res, next) => {
         console.log("ERROR:\n", err)
         if (err.name == "ValidationError"){

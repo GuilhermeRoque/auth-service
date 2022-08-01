@@ -1,5 +1,5 @@
 const jwt = require('jsonwebtoken');
-const User = require('../resources/users/usersModel')
+const User = require('../users/usersModel')
 const bcrypt = require('bcrypt')
 const redisClient = require('./redisClient')
 
@@ -17,8 +17,8 @@ const __getToken = (req) => {
 }
 
 async function verify(req, res, next){
-    console.log("VERIFYING TOKEN")
     const token = __getToken(req)
+    console.log("VERIFYING TOKEN: ", token)
     if (token){
         jwt.verify(token,process.env.ACCESS_TOKEN_SECRET, async (err, payload) => {
             if (err) return res.sendStatus(403); //invalid token
@@ -40,48 +40,39 @@ async function sign(req, res, next){
     let email = req.body.email
     let password = req.body.password
     const user =  await User.findOne({email: email})
-    if (user){
-        const passwordIsValid = await bcrypt.compare(password, user.password)
-        if (passwordIsValid){
-            const accessToken = jwt.sign(
-                {user: user.toJSON()}, //payload
-                process.env.ACCESS_TOKEN_SECRET, 
-                {expiresIn: ACCESS_TOKEN_TIMEOUT})
+    const passwordIsValid = user?await bcrypt.compare(password, user?.password):false
+    if (passwordIsValid){
+        const accessToken = jwt.sign(
+            {user: user.toJSON()}, //payload
+            process.env.ACCESS_TOKEN_SECRET, 
+            {expiresIn: ACCESS_TOKEN_TIMEOUT})
 
-            const refreshToken = jwt.sign(
-                {user: user.toJSON()}, //payload
-                process.env.REFRESH_TOKEN_SECRET, 
-                {expiresIn: REFRESH_TOKEN_TIMEOUT})
+        const refreshToken = jwt.sign(
+            {user: user.toJSON()}, //payload
+            process.env.REFRESH_TOKEN_SECRET, 
+            {expiresIn: REFRESH_TOKEN_TIMEOUT})
 
-                // Creates Secure Cookie with refresh token
-                res.cookie(
-                    'jwt', 
-                    refreshToken, 
-                    { 
-                        httpOnly: true, 
-                        // secure: true, 
-                        sameSite: 'none', 
-                        maxAge: 24 * 60 * 60 * 1000 
-                    }
-                );
+            // Creates Secure Cookie with refresh token
+            res.cookie(
+                'jwt', 
+                refreshToken, 
+                { 
+                    httpOnly: true, 
+                    // secure: true, 
+                    sameSite: 'none', 
+                    maxAge: 24 * 60 * 60 * 1000 
+                }
+            );
 
-                res.status(200).send({
-                    _id: user._id,
-                    email: user.email,
-                    name: user.name,
-                    lastName: user.lastName,    
-                    token: accessToken,
-                    organizations: user.organizations
-                })                             
-
-        }else{
-            res.status(401).send()
-        }
+            res.status(200).send({
+                message: "Successfull authentication",
+                user: user, 
+                accessToken: accessToken
+            })                             
 
     }else{
-        res.status(404).send()
-    }        
-
+        res.status(401).send()
+    }
 }
 
 async function refresh(req, res, next){
