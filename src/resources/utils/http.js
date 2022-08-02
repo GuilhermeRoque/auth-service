@@ -4,7 +4,10 @@ const HttpStatusCodes = {
     NOT_FOUND: 404,
     INTERNAL_SERVER: 500,
     FORBIDEN: 403,
-    CONFLICT: 409
+    CONFLICT: 409,
+    CREATED: 201,
+    NO_CONTENT: 204,
+    ACCEPTED: 202
 } 
 
 module.exports = HttpStatusCodes

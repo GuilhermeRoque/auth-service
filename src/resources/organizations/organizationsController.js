@@ -1,58 +1,45 @@
 const organization = require('./organizationsModel')
 const Organization = organization.OrganizationModel
 const OrganizationMember = organization.OrganizationMemberModel
+const MemberStatusEnum = organization.MemberStatusEnum
+const MemberRoleEnum = organization.MemberRoleEnum
+
 const User = require('../users/usersModel')
 
-const updateMembers = (organizationMembers) =>{
-    members = []
-    for (const member of organizationMembers){
-        members.push({
-            name: member.user.name,
-            email: member.user.email,
-            role: member.role,
-            status: member.status,
-        })
-    }
-    return members
-}
-
-const getOrganizationWithMembers = (organization) => {
-    return {
-        _id: organization._id,
-        name: organization.name,
-        organizationId: organization.organizationId,
-        apiKey: organization.apiKey,
-        members: updateMembers(organization.members)
-    }
-}
 
 module.exports = {
     create : (async (req, res, next) => {
         try {
+            // ADD new member to organization.members
             const organization = new Organization(req.body)
-            const idUser = req.user._id
+            const userId = req.user._id 
             const member = new OrganizationMember({
-                user: idUser,
-                role: 'Dono',
-                status: 'Ativo'
+                userId: userId,
+                role: MemberRoleEnum.OWNER,
+                status: MemberStatusEnum.ACTIVE
             })
             organization.members.push(member)            
             const organizationCreated = await organization.save()
-            const user = await User.findById(idUser)
+
+            // ADD organization to user.organizations
+            const user = await User.findById(userId)
             user.organizations.push(organizationCreated._id)
             await user.save()
-            members = [{
-                name: user.name,
-                email: user.email,
-                role: 'Dono',
-                status: 'Ativo'
-            }]
-            org = {
-                _id: organizationCreated._id,
-                name: organization.name,
-                members: members
-            }
-            res.status(201).send(org)
+
+            res.status(201).send(organizationCreated)
+
+            // const membersPopulated = [{
+            //     name: user.name,
+            //     email: user.email,
+            //     ...member.toJSON()
+            // }]
+
+            // const orgResp = {
+            //     ...organization.toJSON(),
+            //     members: membersPopulated
+            // }
+
+            // res.status(201).send(orgResp)
         } catch (error) {
             next(error)
         }
@@ -76,21 +63,12 @@ module.exports = {
         
     get: (async (req, res, next) => {
         try {
-            if (req.params.id){
-                const organization =  await Organization.findById(req.params.id)
-                if (organization){
-                    res.send(organization)    
-                }else{
-                    res.status(404).send()
-                }   
+            const organization =  await Organization.findById(req.params.id)
+            if (organization){
+                res.send(organization)    
             }else{
-                const organizations = await Organization.find({_id:req.user.organizations})
-                if (organizations){
-                    res.send(organizations)
-                }else{
-                    res.status(404).send()
-                }
-            }
+                res.status(404).send()
+            }   
         } catch (error) {
             next(error)
         }
@@ -99,16 +77,8 @@ module.exports = {
     getAll: (async (req, res, next) => {
         try {
             const user = await User.findById(req.user._id)
-            const organizations = await Organization.find({ '_id': { $in: user.organizations } }).populate("members.user")
-            if (organizations){
-                orgs = []
-                for (const organization of organizations){
-                    orgs.push(getOrganizationWithMembers(organization))
-                }
-                res.send(orgs)
-            }else{
-                res.status(404).send()
-            }
+            const organizations = await Organization.find({ '_id': { $in: user.organizations } })
+            res.send(organizations)
         } catch (error) {
             next(error)
         }
@@ -119,26 +89,22 @@ module.exports = {
             const organization =  await Organization.findById(req.params.id)
             if (organization){
                 const email = req.body.email
-                if (!email){
-                    res.status(400).send({message: "Email is undefined", value:{user: email, organization: req.params.id}})      
-                    
+                const role = req.body.role
+                const user =  await User.findOne({email: email})
+                if (user){
+                    const member = new OrganizationMember({
+                        userId: user._id,
+                        role: role,
+                        status: MemberStatusEnum.INVITED
+                    })
+                    organization.members.push(member)
+                    user.organizations.push(organization._id)
+                    await organization.save()
+                    await user.save()
+                    res.status(201).send(organization)      
                 }else{
-                    const user =  await User.findOne({email:email})
-                    if (user){
-                        const member = new OrganizationMember({
-                            user: user._id,
-                            role: req.body.role,
-                            status: 'Convidado'
-                        })
-                        organization.members.push(member)
-                        user.organizations.push(organization._id)
-                        await organization.save()
-                        await user.save()
-                        res.status(201).send(getOrganizationWithMembers(organization))      
-                    }else{
-                        res.status(404).send({message: "User not found", value:email})
-                    }                 
-                }
+                    res.status(404).send({message: "User not found", value:email})
+                }                 
             }else{
                 res.status(404).send({message: "Organization not found", value: req.params.id})
             }   
@@ -158,7 +124,7 @@ module.exports = {
                 });
                 if (index > -1){
                     const member =  organization.members[index]
-                    member.status = "Ativo"
+                    member.status = MemberStatusEnum.ACTIVE
                     await organization.save()
                     res.status(204).send()      
                 }else{

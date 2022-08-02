@@ -1,12 +1,5 @@
-const HttpStatusCodes = require('./http')
-const mongoose = require("mongoose")
-const mongooseErrors = mongoose.Error
-const mongodb = require("mongodb")
-const MongoServerError = mongodb.MongoServerError
+const HttpStatusCodes = require('../resources/utils/http')
 
-const MongoErrorCodes = {
-    DUPLCIATE: 11000
-}
 class ValidationError extends Error {
     constructor(error){
         super("Validation failed")
@@ -41,33 +34,20 @@ class NotFoundError extends Error {
 }
 
 class UnexpectedError extends Error {
-    constructor(message){
-        super(message),
+    constructor(error){
+        super("Unexpected Error"),
         this.httpStatusCode = HttpStatusCodes.INTERNAL_SERVER
+        this.value = {
+            message: error.message,
+            stack: error.stack
+        }
     }
 }
-
-const is_validation_error = (error) => {
-    return error instanceof mongooseErrors.ValidationError
-}
-const is_duplicated_error = (error) => {
-    return error instanceof MongoServerError && error.code === MongoErrorCodes.DUPLCIATE
-}
-
-const getModelError = (error) => {
-    console.log("Original error:", error)
-    if(is_validation_error(error)) return new ValidationError(error)
-    if(is_duplicated_error(error)) return new DuplicatedError(error)
-    return new UnexpectedError(error)
-}
-
 
 module.exports = {
     ValidationError,
     DuplicatedError,
     UnexpectedError,
     NotFoundError,
-    is_duplicated_error,
-    is_validation_error,
-    getModelError
+
 }

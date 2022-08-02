@@ -27,9 +27,11 @@ const userSchema = new mongoose.Schema({
 
 
 userSchema.pre('save', async function() {
-    const hashPassword = await bcrypt.hash(this.password, Number(12))
-    console.log("Generated hash for password", this.password, hashPassword)
-    this.password = hashPassword
+    if(this.isModified('password')){
+        const hashPassword = await bcrypt.hash(this.password, Number(12))
+        console.log("Generated hash for password", this.password, hashPassword)
+        this.password = hashPassword    
+    }
 });
 
 userSchema.pre('updateOne', async function() {

@@ -91,7 +91,7 @@ async function refresh(req, res, next){
                 process.env.ACCESS_TOKEN_SECRET,
                 { expiresIn: ACCESS_TOKEN_TIMEOUT }
             );
-            res.status(200).send({token: accessToken})
+            res.status(200).send({accessToken: accessToken})
         }
     );    
 }

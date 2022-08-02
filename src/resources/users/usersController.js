@@ -1,20 +1,13 @@
-const UserService = require('./userService')
-
-const handleErr = (error, res) => {
-    console.log(error)
-    res.status(error.httpStatusCode).send({
-        message: error.message, 
-        value: error.value
-    })
-}
+const HttpStatusCodes = require('../utils/http')
+const userService = require('./userService')
 
 module.exports = {
     create : (async (req, res, next) => {
         try {
-            const userCreated = await UserService.create(req.body)
-            res.status(201).send(userCreated)          
+            const userCreated = await userService.create(req.body)
+            res.status(HttpStatusCodes.CREATED).send(userCreated)          
         } catch (error) {
-            handleErr(error, res)
+            next(error)
         }
     }),
     
@@ -22,35 +15,40 @@ module.exports = {
         try {
             const id = req.params.id
             const user = req.body
-            const userUpdated = await UserService.update(user, id, req.user)
-            res.status(204).send(userUpdated)                    
+            const userUpdated = await userService.update(user, id)
+            res.status(HttpStatusCodes.OK).send(userUpdated)                    
         } catch (error) {
-            handleErr(error, res)
+            next(error)
         }
     }),
 
     get: (async (req, res, next) => {
         try {
             const id = req.params.id
-            const userRegistered = await UserService.getById(id, req.user)
-            res.status(200).send(userRegistered)                
+            const filter = {_id:id}
+            const userRegistered = await userService.getOne(filter)
+            res.status(HttpStatusCodes.OK).send(userRegistered)                
         } catch (error) {
-            handleErr(error, res)            
+            next(error)            
         }
     }),
 
-    // delete: (async (req, res, next) => {
-    //     console.log("USER DELETE CONTROLLER", req.params.id, !req.params.id)
-    //     try {
-    //         const user =  await User.findById(req.params.id)
-    //         if (user){
-    //             await user.delete()
-    //             res.status(204).send()
-    //         }else{
-    //             res.status(404).send()
-    //         }
-    //     } catch (error) {
-    //         handleErr(error)
-    //     }
-    // }),
+    delete: (async (req, res, next) => {
+        try {
+            const id = req.params.id
+            const filter = {_id:id}
+            await userService.deleteOne(filter)
+            res.status(HttpStatusCodes.NO_CONTENT).send()                    
+        } catch (error) {
+            next(error)
+        }
+    }),
+
+    handleErr: (async (error, req, res, next) =>{
+        res.status(error.httpStatusCode).send({
+            message: error.message, 
+            value: error.value
+        })
+    
+    })
 }
