@@ -69,6 +69,20 @@ class ServiceBase{
         return new UnexpectedError(error)
     }
 
+    async update(document, id){
+        const filter = {_id:id}
+        await this.model.findOne
+        const registeredDoc = await this.getOne(filter)
+        for(const k of Object.keys(document)){
+            registeredDoc[k] = document[k]
+        }
+        try {
+            return await registeredDoc.save()
+        } catch (error) {
+            throw (getModelError(error))
+        }        
+    }
+
 }
 
 module.exports = ServiceBase
