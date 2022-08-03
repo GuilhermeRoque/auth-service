@@ -32,6 +32,10 @@ class ServiceBase{
         return this.checkDocumentFound(filter, document)
     }
 
+    async getAll(filter){
+        return await this.model.find(filter)
+    }
+
     checkDeleteReport(filter, deleteReport){
         if(deleteReport.deletedCount !==1) throw new NotFoundError(filter)
     }

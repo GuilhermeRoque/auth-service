@@ -42,15 +42,18 @@ async function sign(req, res, next){
     const user =  await User.findOne({email: email})
     const passwordIsValid = user?await bcrypt.compare(password, user?.password):false
     if (passwordIsValid){
+        const payload = {userId: user._id.toString()} 
         const accessToken = jwt.sign(
-            {user: user.toJSON()}, //payload
+            payload,
             process.env.ACCESS_TOKEN_SECRET, 
             {expiresIn: ACCESS_TOKEN_TIMEOUT})
 
         const refreshToken = jwt.sign(
-            {user: user.toJSON()}, //payload
+            payload,
             process.env.REFRESH_TOKEN_SECRET, 
             {expiresIn: REFRESH_TOKEN_TIMEOUT})
+            
+            const secure = process.env.PRODUCTION? true:'none'
 
             // Creates Secure Cookie with refresh token
             res.cookie(
@@ -58,7 +61,7 @@ async function sign(req, res, next){
                 refreshToken, 
                 { 
                     httpOnly: true, 
-                    // secure: true, 
+                    secure: secure, 
                     sameSite: 'none', 
                     maxAge: 24 * 60 * 60 * 1000 
                 }

@@ -49,6 +49,5 @@ module.exports = {
             message: error.message, 
             value: error.value
         })
-    
     })
 }

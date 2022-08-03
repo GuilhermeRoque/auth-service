@@ -44,10 +44,30 @@ class UnexpectedError extends Error {
     }
 }
 
+class ForbiddenError extends Error {
+    constructor(user, reason){
+        super("You have no permission to do this")
+        this.httpStatusCode = HttpStatusCodes.FORBIDEN
+        this.value = {
+            user: user,
+            reason: reason
+        }
+    }
+}
+
+class RoleError extends ForbiddenError{
+    constructor(member, role){
+        super(member, `You must have a role level ${role}`)
+    }
+}
+
+
 module.exports = {
     ValidationError,
     DuplicatedError,
     UnexpectedError,
     NotFoundError,
+    ForbiddenError,
+    RoleError
 
 }
