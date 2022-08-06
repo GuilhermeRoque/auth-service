@@ -5,7 +5,7 @@ const MemberStatusEnum = organization.MemberStatusEnum
 const MemberRoleEnum = organization.MemberRoleEnum
 const ServiceBase = require('../../service/serviceBase')
 const User = require('../users/usersModel')
-const { ForbiddenError, RoleError, NotFoundError } = require('../../service/serviceErrors')
+const { ForbiddenError, RoleError, NotFoundError, FailedSanityCheckError } = require('../../service/serviceErrors')
 
 class MemberError extends ForbiddenError{
     constructor(user){
@@ -17,19 +17,6 @@ class ServiceOrganization extends ServiceBase{
     constructor(){
         const model = Organization
         super(model)
-    }
-
-    findMemberIndex(organization, userId){
-        const index = organization.members.findIndex(member => {
-            return member.userId.toString() === userId;
-        });
-        return index
-    }
-    findMemberIndexById(organization, id){
-        const index = organization.members.findIndex(member => {
-            return member._id.toString() === id;
-        });
-        return index
     }
 
     async create (organization, caller){
@@ -59,49 +46,28 @@ class ServiceOrganization extends ServiceBase{
         }
     }
 
-    async deleteOne(filter, caller){
-        const organization = await this.getOne(filter)
-        // only owner can delete organization
-        this.checkIsOwner(organization, caller) 
-        const deleteReport = await this.model.deleteOne(filter) 
-        return this.checkDeleteReport(filter, deleteReport)
-    }
-
-    checkIsOwner(organization, caller) {
-        const userId = caller._id
-        console.log("CHECKING IS MEMBER")
-        console.log(organization)
-        console.log(userId)
-        const memberIndex = this.findMemberIndex(organization, userId)
-        if (memberIndex === -1) throw new MemberError(caller)
-        const member = organization.members[memberIndex]
-        if (member.role !== MemberRoleEnum.OWNER) throw new RoleError(member, MemberRoleEnum.OWNER)
+    async deleteById(id, caller){
+        const organization = await this._getById(id)
+        this._checkRoleNeeded(organization, caller, MemberRoleEnum.OWNER)
+        return await this._deleteById(id)
     }
 
     async update(organization, id, caller){
-        const filter = {_id:id}
-        const registeredOrganization = await this.getOne(filter)
-        this.checkIsOwner(registeredOrganization, caller)
-        for(const k of Object.keys(organization)){
-            registeredOrganization[k] = organization[k]
-        }
-        try {
-            return await registeredOrganization.save()
-        } catch (error) {
-            throw (getModelError(error))
-        }        
+        this._checkRoleNeeded(organization, caller, MemberRoleEnum.OWNER)
+        return await this._update(organization, id)
     }
 
     async getAll(filter, caller){
         const user = await User.findById(caller._id)
+        console.log("user", user)
+        console.log("caller._id", caller._id)
         const userFilter = {...filter, '_id': { $in: user.organizations }}
         return await this.model.find(userFilter)
     }
 
     async inviteMember(id, invite, caller){
-        const organizationFilter = {_id: id}
-        const organization = await this.getOne(organizationFilter)     
-        this.checkIsOwner(organization, caller)
+        const organization = await this._getById(id)
+        this._checkRoleNeeded(organization, caller, MemberRoleEnum.OWNER)
         const userFilter =  {email: invite.email}
         const user =  await User.findOne(userFilter)
         if (!user) throw new NotFoundError(userFilter)
@@ -117,29 +83,61 @@ class ServiceOrganization extends ServiceBase{
         return member
     }
 
-    async acceptInviteMember(id, memberId, caller){
-        const organizationFilter = {_id: id}
-        const organization = await this.getOne(organizationFilter)     
-        const userId = caller._id
-        const memberIndex = this.findMemberIndexById(organization, memberId)
-        const member =  organization.members[memberIndex]
-        if ((!member) | (userId !== member?.userId)) throw new MemberError(caller)
+    async acceptInviteMember(id, caller){
+        const organization = await this._getById(id)
+        const member = this._getMember(organization, caller)
+        if(member.status !== MemberStatusEnum.INVITED) throw new FailedSanityCheckError((`To accept an invite the member status must be ${MemberStatusEnum.INVITED}`))
         member.status = MemberStatusEnum.ACTIVE
         await organization.save()
         return member
     }
 
     async removeUser(id, userId, caller){
-        const organizationFilter = {_id: userId}
-        const organization = await this.getOne(organizationFilter)     
+        const organization = await this._getById(id)
         // only owner can remove other members
-        if(userId !== caller._id) this.checkIsOwner(organization, caller)
-        const memberIndex = this.findMemberIndex(organization, userId)
+        if(userId !== caller._id) this._checkRoleNeeded(organization, caller, MemberRoleEnum.OWNER)
+        const memberIndex = this._findMemberIndex(organization, userId)
         if (memberIndex === -1) throw new MemberError(caller)
         organization.members.splice(memberIndex, 1)
         await organization.save()
     }
+
+
+    async _getOrganization(id, caller, roleNeeded){
+        const organization = await this._getById(id)
+        this._checkRoleNeeded(organization, caller, roleNeeded) 
+
+    }
+
+    _checkRoleNeeded(organization, caller, roleNeeded) {
+        const member = this._getMember(organization, caller)
+        if (member.role > roleNeeded) throw new RoleError(member, roleNeeded)
+    }
+
+    _findMemberIndex(organization, userId){
+        const index = organization.members.findIndex(member => {
+            return member.userId.toString() === userId;
+        });
+        return index
+    }
+    _findMemberIndexById(organization, id){
+        const index = organization.members.findIndex(member => {
+            return member._id.toString() === id;
+        });
+        return index
+    }
+
+    _getMember(organization, caller){
+        const userId = caller._id
+        const memberIndex = this._findMemberIndex(organization, userId)
+        if (memberIndex === -1) throw new MemberError(caller)
+        return organization.members[memberIndex]
+
+    }
+
 }
+
+
 
 module.exports = new ServiceOrganization()
 

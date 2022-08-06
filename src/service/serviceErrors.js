@@ -1,9 +1,18 @@
 const HttpStatusCodes = require('../resources/utils/http')
 
-class ValidationError extends Error {
+class ServiceError extends Error {
+    constructor(httpStatusCode, message, value){
+        super(message)
+        this.httpStatusCode = httpStatusCode
+        this.message = message
+        this.value = value
+    }
+}
+
+class ValidationError extends ServiceError {
     constructor(error){
-        super("Validation failed")
-        this.httpStatusCode = HttpStatusCodes.BAD_REQUEST
+        const message = "Validation failed"
+        const httpStatusCode = HttpStatusCodes.BAD_REQUEST
         const value = []
         for(const err of Object.entries(error.errors)){
             value.push(
@@ -13,45 +22,45 @@ class ValidationError extends Error {
                     input: err[1].value
                 })
         }
-        this.value = value
+        super(httpStatusCode, message, value)
     }
 }
 
-class DuplicatedError extends Error {
+class FailedSanityCheckError extends ServiceError{
+    constructor(value){
+        const message = "Sanity check failed"
+        const httpStatusCode = HttpStatusCodes.BAD_REQUEST
+        super(httpStatusCode, message, value)
+    }
+}
+
+class DuplicatedError extends ServiceError {
     constructor(error){
-        super("Duplicated data")
-        this.httpStatusCode = HttpStatusCodes.CONFLICT
-        this.value = error.keyValue
+        const message = "Duplicated data"
+        const httpStatusCode = HttpStatusCodes.CONFLICT
+        const value = error.keyValue
+        super(httpStatusCode, message, value)
     }
 }
 
-class NotFoundError extends Error {
+class NotFoundError extends ServiceError {
     constructor(filter){
-        super("Not found"),
-        this.httpStatusCode = HttpStatusCodes.NOT_FOUND,
-        this.value = filter
+        const message = "Not found"
+        const httpStatusCode = HttpStatusCodes.NOT_FOUND
+        const value = filter
+        super(httpStatusCode, message, value)
     }
 }
 
-class UnexpectedError extends Error {
-    constructor(error){
-        super("Unexpected Error"),
-        this.httpStatusCode = HttpStatusCodes.INTERNAL_SERVER
-        this.value = {
-            message: error.message,
-            stack: error.stack
-        }
-    }
-}
-
-class ForbiddenError extends Error {
+class ForbiddenError extends ServiceError {
     constructor(user, reason){
-        super("You have no permission to do this")
-        this.httpStatusCode = HttpStatusCodes.FORBIDEN
-        this.value = {
+        const message = "You have no permission to do this"
+        const httpStatusCode = HttpStatusCodes.FORBIDEN
+        const value = {
             user: user,
             reason: reason
         }
+        super(httpStatusCode, message, value)
     }
 }
 
@@ -61,13 +70,28 @@ class RoleError extends ForbiddenError{
     }
 }
 
+class UnexpectedError extends ServiceError {
+    constructor(error){
+        const message = "Unexpected Error"
+        const httpStatusCode = HttpStatusCodes.INTERNAL_SERVER
+        const value = {
+            message: error.message,
+            stack: error.stack
+        }
+        super(httpStatusCode, message, value)        
+    }
+}
+
+
 
 module.exports = {
+    ServiceError,
     ValidationError,
     DuplicatedError,
-    UnexpectedError,
     NotFoundError,
     ForbiddenError,
-    RoleError
+    RoleError,
+    FailedSanityCheckError,
+    UnexpectedError
 
 }

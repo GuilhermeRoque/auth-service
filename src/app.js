@@ -6,6 +6,8 @@ const express = require('express');
 const swaggerUi = require('swagger-ui-express')
 const swaggerFile = require('./resources/doc/swagger_output.json')
 const cookieParser = require('cookie-parser');
+const {ServiceError} = require("./service/serviceErrors")
+const HttpStatusCodes = require('./resources/utils/http')
 
 swaggerFile.host = process.env.SWAGGER_HOST
 
@@ -30,6 +32,24 @@ app.options("*", (async (req, res, next) => {res.status(200).send()}))
 app.use('/users', usersRouter);
 app.use("/auth", authRouter);
 app.use('/organizations', organizationsRouter);
+app.use(async (error, req, res, next) =>{
+    if (error instanceof ServiceError){
+        res.status(error.httpStatusCode).send({
+            message: error.message, 
+            value: error.value
+        })    
+    }else{
+        console.log('Unexpected error')
+        console.log(error)
+        res.status(HttpStatusCodes.INTERNAL_SERVER).send({
+            message: error.name, 
+            value: {
+                message:error.message,
+                stack:error.stack
+            }
+        })    
+    }
+})
 
 // app.use('/', swaggerUi.serve, swaggerUi.setup(swaggerFile))
 

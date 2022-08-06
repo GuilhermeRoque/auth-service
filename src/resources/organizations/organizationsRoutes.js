@@ -11,6 +11,5 @@ router.get('/', organizationsController.getAll)
 router.post('/:id/members', organizationsController.inviteMember)
 router.post('/:id/members/:idMember/join', organizationsController.acceptInviteMember)
 router.delete('/:id/members/:idMember', organizationsController.removeUser)
-router.use(organizationsController.handleErr)
 
 module.exports = router;

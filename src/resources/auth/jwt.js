@@ -42,18 +42,17 @@ async function sign(req, res, next){
     const user =  await User.findOne({email: email})
     const passwordIsValid = user?await bcrypt.compare(password, user?.password):false
     if (passwordIsValid){
-        const payload = {userId: user._id.toString()} 
         const accessToken = jwt.sign(
-            payload,
+            {user: user.toJSON()},
             process.env.ACCESS_TOKEN_SECRET, 
             {expiresIn: ACCESS_TOKEN_TIMEOUT})
 
         const refreshToken = jwt.sign(
-            payload,
+            {userId: user._id.toString()},
             process.env.REFRESH_TOKEN_SECRET, 
             {expiresIn: REFRESH_TOKEN_TIMEOUT})
             
-            const secure = process.env.PRODUCTION? true:'none'
+            const secure = process.env.PRODUCTION? true:null
 
             // Creates Secure Cookie with refresh token
             res.cookie(
@@ -89,8 +88,9 @@ async function refresh(req, res, next){
             if (err) return res.sendStatus(403);
             const denyToken = await redisClient.getDenyList(refreshToken)
             if (denyToken) return res.sendStatus(403)
+            const user =  await User.findById(decoded.userId)
             const accessToken = jwt.sign(
-                {user: {...decoded.user}},
+                {user: user.toJSON()},
                 process.env.ACCESS_TOKEN_SECRET,
                 { expiresIn: ACCESS_TOKEN_TIMEOUT }
             );
@@ -99,7 +99,7 @@ async function refresh(req, res, next){
     );    
 }
 
-async function signout(req, res, next){
+async function signout(req){
     const cookies = req.cookies;
     const refreshToken = cookies.jwt;
     if(refreshToken){

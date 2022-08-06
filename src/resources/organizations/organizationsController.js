@@ -82,11 +82,4 @@ module.exports = {
             next(error)            
         }
     }),
-    
-    handleErr: (async (error, req, res, next) =>{
-        res.status(error.httpStatusCode).send({
-            message: error.message, 
-            value: error.value
-        })
-    })
 }
