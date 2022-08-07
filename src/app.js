@@ -39,14 +39,11 @@ app.use(async (error, req, res, next) =>{
             value: error.value
         })    
     }else{
-        console.log('Unexpected error')
+        const message = 'Unexpected error'
+        console.log(message)
         console.log(error)
         res.status(HttpStatusCodes.INTERNAL_SERVER).send({
-            message: error.name, 
-            value: {
-                message:error.message,
-                stack:error.stack
-            }
+            message: message, 
         })    
     }
 })

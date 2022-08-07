@@ -1,5 +1,5 @@
 const {Organization, OrganizationMember} = require('./organizationsModel')
-const {MemberRoleEnum} = require('../utils/enums')
+const {MemberRoleEnum, MemberStatusEnum} = require('../utils/enums')
 const ServiceBase = require('../../service/serviceBase')
 const {User, UserOrganization} = require('../users/usersModel')
 const { ForbiddenError, RoleError, NotFoundError, FailedSanityCheckError } = require('../../service/serviceErrors')
@@ -7,6 +7,12 @@ const { ForbiddenError, RoleError, NotFoundError, FailedSanityCheckError } = req
 class MemberError extends ForbiddenError{
     constructor(user){
         super(user, "Must be a member of the organization")
+    }
+}
+
+class MemberStatusError extends ForbiddenError{
+    constructor(user, status){
+        super(user, `Must have status ${status} to do this operation`)
     }
 }
 
@@ -23,10 +29,16 @@ class ServiceOrganization extends ServiceBase{
 
             // ADD new member to organization.members
             const newOrganization = new this.model(organization)
+
+            const userPermission = {
+                role: MemberRoleEnum.OWNER,
+                status: MemberStatusEnum.ACTIVE
+            }
+
             const member = new OrganizationMember({
                 userId: userId,
                 userEmail: userEmail,
-                role: MemberRoleEnum.OWNER,
+                ...userPermission
             })
             newOrganization.members.push(member)            
             const organizationCreated = await newOrganization.save()
@@ -37,7 +49,7 @@ class ServiceOrganization extends ServiceBase{
                 new UserOrganization({
                     organizationId:organizationCreated._id,
                     organizationName: organization.name,
-                    role: MemberRoleEnum.OWNER
+                    ...userPermission
                 }))
             await user.save()
 
@@ -113,6 +125,7 @@ class ServiceOrganization extends ServiceBase{
 
     _checkRoleNeeded(organization, caller, roleNeeded) {
         const member = this._getMember(organization, caller)
+        if (member.status !== MemberStatusEnum.ACTIVE) throw new MemberStatusError(member, MemberStatusEnum.ACTIVE)
         if (member.role > roleNeeded) throw new RoleError(member, roleNeeded)
     }
 

@@ -6,7 +6,7 @@ const redisClient = require('./redisClient')
 const ACCESS_TOKEN_TIMEOUT = '300s'
 const REFRESH_TOKEN_TIMEOUT = '1d'
 
-const __getToken = (req) => {
+const _getToken = (req) => {
     const authString = req.get('Authorization')
     const bearerType = "Bearer "
     if (authString && authString.startsWith(bearerType) && authString.length > bearerType.length){
@@ -17,14 +17,14 @@ const __getToken = (req) => {
 }
 
 async function verify(req, res, next){
-    const token = __getToken(req)
+    const token = _getToken(req)
     console.log("VERIFYING TOKEN: ", token)
     if (token){
+        const denyToken = await redisClient.isInDenyListJWT(token)
+        if (denyToken) return res.sendStatus(403)
         jwt.verify(token,process.env.ACCESS_TOKEN_SECRET, async (err, payload) => {
             if (err) return res.sendStatus(403); //invalid token
             else{
-                const denyToken = await redisClient.getDenyList(token)
-                if (denyToken) return res.sendStatus(403)
                 console.log("PAYLOAD: ", payload)
                 req.user = payload.user
                 next()    
@@ -86,7 +86,7 @@ async function refresh(req, res, next){
         process.env.REFRESH_TOKEN_SECRET,
         async (err, decoded) => {
             if (err) return res.sendStatus(403);
-            const denyToken = await redisClient.getDenyList(refreshToken)
+            const denyToken = await redisClient.isInDenyListJWT(refreshToken)
             if (denyToken) return res.sendStatus(403)
             const user =  await User.findById(decoded.userId)
             const accessToken = jwt.sign(
@@ -107,14 +107,14 @@ async function signout(req){
             refreshToken,
             process.env.REFRESH_TOKEN_SECRET,
             async (err, decoded) => {
-                if (!err) await redisClient.pushDenyList(refreshToken)
+                if (!err) await redisClient.pushDenyListJWT(refreshToken)
             }
         )    
     }
-    const accessToken = __getToken(req)
+    const accessToken = _getToken(req)
     if(accessToken){
         jwt.verify(accessToken, process.env.ACCESS_TOKEN_SECRET, async (err, payload) => {
-            if (!err) await redisClient.pushDenyList(accessToken)
+            if (!err) await redisClient.pushDenyListJWT(accessToken)
         })
     }
 }

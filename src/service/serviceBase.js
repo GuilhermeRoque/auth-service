@@ -92,7 +92,7 @@ class ServiceBase{
         console.log("Original error:", error)
         if(this.is_validation_error(error)) return new ValidationError(error)
         if(this.is_duplicated_error(error)) return new DuplicatedError(error)
-        return new UnexpectedError(error)
+        return error
     }
 
 }

@@ -1,6 +1,6 @@
 const { ObjectId } = require('mongodb');
 const mongoose = require('mongoose');
-const {MemberRoleEnum} = require('../utils/enums')
+const {MemberRoleEnum, MemberStatusEnum} = require('../utils/enums')
 
 const organizationMember = new mongoose.Schema({
     userId: {
@@ -17,8 +17,14 @@ const organizationMember = new mongoose.Schema({
     role: {
         type: Number,
         required: true, 
-        enum: MemberRoleEnum.ALL_OPTIONS        
+        enum: MemberRoleEnum.ALL_OPTIONS
     },
+    status: {
+        type: Number,
+        required: true, 
+        enum: MemberStatusEnum.ALL_OPTIONS
+    },
+
 },{ collection: 'organizationMembers' })
 
 const organizationSchema = new mongoose.Schema({

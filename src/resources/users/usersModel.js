@@ -2,7 +2,7 @@ const mongoose = require('mongoose');
 const emailValidator = require('email-validator')
 const bcrypt = require('bcrypt');
 const { ObjectId } = require('mongodb');
-const {MemberRoleEnum} = require('../utils/enums')
+const {MemberRoleEnum, MemberStatusEnum} = require('../utils/enums')
 
 const userOrganizationSchema = new mongoose.Schema({
     organizationId: {
@@ -20,6 +20,11 @@ const userOrganizationSchema = new mongoose.Schema({
         type: Number,
         required: true, 
         enum: MemberRoleEnum.ALL_OPTIONS        
+    },
+    status: {
+        type: Number,
+        required: true, 
+        enum: MemberStatusEnum.ALL_OPTIONS        
     },
 },{ collection: 'userOrganization' })
 
