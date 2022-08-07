@@ -1,10 +1,7 @@
-const organization = require('./organizationsModel')
-const Organization = organization.OrganizationModel
-const OrganizationMember = organization.OrganizationMemberModel
-const MemberStatusEnum = organization.MemberStatusEnum
-const MemberRoleEnum = organization.MemberRoleEnum
+const {Organization, OrganizationMember} = require('./organizationsModel')
+const {MemberRoleEnum} = require('../utils/enums')
 const ServiceBase = require('../../service/serviceBase')
-const User = require('../users/usersModel')
+const {User, UserOrganization} = require('../users/usersModel')
 const { ForbiddenError, RoleError, NotFoundError, FailedSanityCheckError } = require('../../service/serviceErrors')
 
 class MemberError extends ForbiddenError{
@@ -22,20 +19,26 @@ class ServiceOrganization extends ServiceBase{
     async create (organization, caller){
         try{
             const userId = caller._id
+            const userEmail = caller.email
 
             // ADD new member to organization.members
             const newOrganization = new this.model(organization)
             const member = new OrganizationMember({
                 userId: userId,
+                userEmail: userEmail,
                 role: MemberRoleEnum.OWNER,
-                status: MemberStatusEnum.ACTIVE
             })
             newOrganization.members.push(member)            
             const organizationCreated = await newOrganization.save()
 
-            // ADD organization to user.organizations
+            // ADD organization to user.userOrganizations
             const user = await User.findById(userId)
-            user.organizations.push(organizationCreated._id)
+            user.userOrganizations.push(
+                new UserOrganization({
+                    organizationId:organizationCreated._id,
+                    organizationName: organization.name,
+                    role: MemberRoleEnum.OWNER
+                }))
             await user.save()
 
             // return organization created
@@ -59,9 +62,8 @@ class ServiceOrganization extends ServiceBase{
 
     async getAll(filter, caller){
         const user = await User.findById(caller._id)
-        console.log("user", user)
-        console.log("caller._id", caller._id)
-        const userFilter = {...filter, '_id': { $in: user.organizations }}
+        const organizationIds = user.userOrganizations.map((userOrganization)=>userOrganization.organizationId)
+        const userFilter = {...filter, '_id': { $in:  organizationIds}}
         return await this.model.find(userFilter)
     }
 
@@ -77,7 +79,7 @@ class ServiceOrganization extends ServiceBase{
             status: MemberStatusEnum.INVITED
         })
         organization.members.push(member)
-        user.organizations.push(organization._id)
+        user.userOrganizations.push(organization._id)
         await organization.save()
         await user.save()
         return member

@@ -1,4 +1,4 @@
-const User = require('./usersModel')
+const {User} = require('./usersModel')
 const ServiceBase = require('../../service/serviceBase')
 const { ForbiddenError } = require('../../service/serviceErrors')
 

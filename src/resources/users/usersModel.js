@@ -2,6 +2,28 @@ const mongoose = require('mongoose');
 const emailValidator = require('email-validator')
 const bcrypt = require('bcrypt');
 const { ObjectId } = require('mongodb');
+const {MemberRoleEnum} = require('../utils/enums')
+
+const userOrganizationSchema = new mongoose.Schema({
+    organizationId: {
+        type: ObjectId,
+        ref: 'Organization',
+        required: true,
+        unique: true
+    },
+    organizationName: {
+        type: String,
+        unique: true,
+        required: true,
+    },
+    role: {
+        type: Number,
+        required: true, 
+        enum: MemberRoleEnum.ALL_OPTIONS        
+    },
+},{ collection: 'userOrganization' })
+
+
 const userSchema = new mongoose.Schema({
     name: {
         type: String, 
@@ -21,7 +43,7 @@ const userSchema = new mongoose.Schema({
         type: String, 
         required:true
     },
-    organizations: [{type: ObjectId, ref: "Organization"}]
+    userOrganizations: [userOrganizationSchema]
     
 }, { collection: 'users' })
 
@@ -38,4 +60,7 @@ userSchema.pre('updateOne', async function() {
     this.options.runValidators = true;
 });
 
-module.exports = mongoose.model("User", userSchema)
+module.exports = {
+    User: mongoose.model("User", userSchema),
+    UserOrganization: mongoose.model('UserOrganization', userOrganizationSchema)
+}
