@@ -66,7 +66,9 @@ class RedisClient{
 
 }
 
-module.exports = new RedisClient()
+module.exports = {
+    redisClient: new RedisClient()
+}
 
 
 

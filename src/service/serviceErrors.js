@@ -82,6 +82,14 @@ class UnexpectedError extends ServiceError {
     }
 }
 
+class UnauthorizedError extends ServiceError{
+    constructor(message, value){
+        const httpStatusCode = HttpStatusCodes.UNAUTHORIZED
+        super(httpStatusCode, message, value)
+    }
+
+}
+
 
 
 module.exports = {
@@ -92,6 +100,7 @@ module.exports = {
     ForbiddenError,
     RoleError,
     FailedSanityCheckError,
-    UnexpectedError
+    UnexpectedError,
+    UnauthorizedError
 
 }

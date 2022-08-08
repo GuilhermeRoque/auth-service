@@ -3,6 +3,8 @@ const {MemberRoleEnum, MemberStatusEnum} = require('../utils/enums')
 const ServiceBase = require('../../service/serviceBase')
 const {User, UserOrganization} = require('../users/usersModel')
 const { ForbiddenError, RoleError, NotFoundError, FailedSanityCheckError } = require('../../service/serviceErrors')
+const redisClient = require('../auth/redisClient')
+const authService = require('../auth/authService')
 
 class MemberError extends ForbiddenError{
     constructor(user){
@@ -22,7 +24,7 @@ class ServiceOrganization extends ServiceBase{
         super(model)
     }
 
-    async create (organization, caller){
+    async create (organization, caller, accessToken){
         try{
             const userId = caller._id
             const userEmail = caller.email
@@ -52,9 +54,13 @@ class ServiceOrganization extends ServiceBase{
                     ...userPermission
                 }))
             await user.save()
+            
+            // user has new organization role: deny current accessToken 
+            await authService.removeAccessToken(accessToken)
+            const newAccessToken = await authService.createAccessToken(user.toJSON())
 
             // return organization created
-            return organizationCreated
+            return {organization: organizationCreated, accessToken: newAccessToken}
 
         }catch(error){
             throw (this.getServiceError(error))
@@ -97,13 +103,42 @@ class ServiceOrganization extends ServiceBase{
         return member
     }
 
-    async acceptInviteMember(id, caller){
+    async updateMember(id, memberId, member, caller, accessToken){
         const organization = await this._getById(id)
-        const member = this._getMember(organization, caller)
-        if(member.status !== MemberStatusEnum.INVITED) throw new FailedSanityCheckError((`To accept an invite the member status must be ${MemberStatusEnum.INVITED}`))
-        member.status = MemberStatusEnum.ACTIVE
+        const memberRegistered = this._getMemberById(organization, memberId)
+        const isMemberEqualCaller = memberRegistered.userId === caller._id
+        const isMemberOwner =  memberRegistered.role === MemberRoleEnum.OWNER
+
+        if(!isMemberEqualCaller) {
+            // if the other member is OWNER deny update
+            if(isMemberOwner) throw new ForbiddenError(memberRegistered, "Owner member can only be uptated by himself")
+            // only owner can update other members
+            this._checkRoleNeeded(organization, caller, MemberRoleEnum.OWNER)
+        }else if (member.role){
+            // if the user is updating himself, the role privilege can only decrease
+            this._checkRoleNeeded(organization, caller, member.role)
+        }
+        // There is actually only INVITED and ACTIVE status, check it
+        if(member.status){
+            if((memberRegistered.status !== MemberStatusEnum.INVITED) | (member.status !== MemberStatusEnum.ACTIVE)) {
+                throw new FailedSanityCheckError((
+                    `Only possible update invited to active member status. 
+                    To accept an invite the member status must be ${MemberStatusEnum.INVITED}`))
+            }    
+        }
+        memberRegistered.status = member.status?member.status:memberRegistered.status
+        memberRegistered.role = member.role?member.role:memberRegistered.role
+
+        let newAccessToken = undefined
+        if(isMemberEqualCaller) {
+            await authService.removeAccessToken(accessToken)
+            newAccessToken = await authService.createAccessToken(caller)
+        } 
+        else redisClient.pushDenyListUserId(member.userId)
+
         await organization.save()
-        return member
+
+        return {member: memberRegistered, accessToken: newAccessToken}
     }
 
     async removeUser(id, userId, caller){
@@ -148,6 +183,12 @@ class ServiceOrganization extends ServiceBase{
         if (memberIndex === -1) throw new MemberError(caller)
         return organization.members[memberIndex]
 
+    }
+
+    _getMemberById(organization, id){
+        const memberIndex = this._findMemberIndexById(organization, id)
+        if (memberIndex === -1) throw new MemberError(caller)
+        return organization.members[memberIndex]
     }
 
 }

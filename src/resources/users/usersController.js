@@ -1,5 +1,5 @@
 const { ServiceError } = require('../../service/serviceErrors')
-const { signout } = require('../auth/jwt')
+const { signout } = require('../auth/authService')
 const HttpStatusCodes = require('../utils/http')
 const userService = require('./userService')
 

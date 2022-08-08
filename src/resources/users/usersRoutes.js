@@ -1,10 +1,10 @@
 const express = require('express')
+const authController = require('../auth/authController')
 const router = express.Router()
-const jwt = require("../auth/jwt")
 const usersController = require('./usersController')
 
 router.post('/', usersController.create)
-router.use('*', jwt.verify)
+router.use('*', authController.verifyAccessToken)
 router.get('/:id', usersController.get)
 router.put('/:id', usersController.update)
 router.delete('/:id', usersController.delete)

@@ -6,7 +6,8 @@ module.exports = {
         try {
             const organization = req.body
             const caller = req.user
-            const organizationCreated = await organizationService.create(organization, caller)
+            const accessToken = req.accessToken
+            const organizationCreated = await organizationService.create(organization, caller, accessToken)
             res.status(HttpStatusCodes.CREATED).send(organizationCreated)
         } catch (error) {
             next(error)
@@ -58,13 +59,14 @@ module.exports = {
         }
     }),
 
-
-    acceptInviteMember: (async (req, res, next) => {
+    updateMember: (async (req, res, next) => {
         try {
             const caller = req.user
             const id = req.params.id
             const memberId = req.params.memberId
-            const memberUpdated = await organizationService.acceptInviteMember(id, memberId, caller)
+            const member = req.body
+            const accessToken = req.accessToken
+            const memberUpdated = await organizationService.updateMember(id, memberId, member, caller, accessToken)
             res.status(HttpStatusCodes.OK).send(memberUpdated)
         } catch (error) {
             next(error)            
