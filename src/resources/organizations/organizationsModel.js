@@ -1,6 +1,6 @@
 const { ObjectId } = require('mongodb');
 const mongoose = require('mongoose');
-const {MemberRoleEnum, MemberStatusEnum} = require('../utils/enums')
+const { MemberRoleEnum, MemberStatusEnum } = require('web-service-utils/enums');
 
 const organizationMember = new mongoose.Schema({
     userId: {

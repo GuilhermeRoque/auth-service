@@ -1,7 +1,6 @@
-const { ServiceError } = require('../../service/serviceErrors')
 const { signout } = require('../auth/authService')
-const HttpStatusCodes = require('../utils/http')
 const userService = require('./userService')
+const { HttpStatusCodes } = require('web-service-utils/enums')
 
 module.exports = {
     create : (async (req, res, next) => {

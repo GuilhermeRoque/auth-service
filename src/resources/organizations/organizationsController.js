@@ -1,4 +1,4 @@
-const HttpStatusCodes = require("../utils/http")
+const { HttpStatusCodes } = require("web-service-utils/enums")
 const organizationService = require("./organizationsService")
 
 module.exports = {

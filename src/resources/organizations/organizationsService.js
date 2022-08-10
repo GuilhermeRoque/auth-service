@@ -1,10 +1,10 @@
 const {Organization, OrganizationMember} = require('./organizationsModel')
-const {MemberRoleEnum, MemberStatusEnum} = require('../utils/enums')
-const ServiceBase = require('../../service/serviceBase')
+const { MemberRoleEnum, MemberStatusEnum } = require('web-service-utils/enums');
+const ServiceBase = require('web-service-utils/serviceBase')
 const {User, UserOrganization} = require('../users/usersModel')
-const { ForbiddenError, RoleError, NotFoundError, FailedSanityCheckError } = require('../../service/serviceErrors')
-const redisClient = require('../auth/redisClient')
-const authService = require('../auth/authService')
+const { ForbiddenError, RoleError, NotFoundError, FailedSanityCheckError } = require('web-service-utils/serviceErrors')
+// const redisClient = require('../auth/redisClient')
+// const authService = require('../auth/authService')
 
 class MemberError extends ForbiddenError{
     constructor(user){
@@ -56,8 +56,8 @@ class ServiceOrganization extends ServiceBase{
             await user.save()
             
             // user has new organization role: deny current accessToken 
-            await authService.removeAccessToken(accessToken)
-            const newAccessToken = await authService.createAccessToken(user.toJSON())
+            // await authService.removeAccessToken(accessToken)
+            // const newAccessToken = await authService.createAccessToken(user.toJSON())
 
             // return organization created
             return {organization: organizationCreated, accessToken: newAccessToken}
@@ -130,11 +130,11 @@ class ServiceOrganization extends ServiceBase{
         memberRegistered.role = member.role?member.role:memberRegistered.role
 
         let newAccessToken = undefined
-        if(isMemberEqualCaller) {
-            await authService.removeAccessToken(accessToken)
-            newAccessToken = await authService.createAccessToken(caller)
-        } 
-        else redisClient.pushDenyListUserId(member.userId)
+        // if(isMemberEqualCaller) {
+        //     await authService.removeAccessToken(accessToken)
+        //     newAccessToken = await authService.createAccessToken(caller)
+        // } 
+        // else redisClient.pushDenyListUserId(member.userId)
 
         await organization.save()
 

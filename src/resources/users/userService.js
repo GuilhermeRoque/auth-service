@@ -1,6 +1,6 @@
 const {User} = require('./usersModel')
-const ServiceBase = require('../../service/serviceBase')
-const { ForbiddenError } = require('../../service/serviceErrors')
+const ServiceBase = require('web-service-utils/serviceBase')
+const { ForbiddenError } = require('web-service-utils/serviceErrors')
 
 class ServiceUser extends ServiceBase{
     USER_AUTHORIZATION_MESSAGE = "User can only perform read, update and delete operations on itself"

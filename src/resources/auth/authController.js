@@ -1,29 +1,6 @@
-const HttpStatusCodes = require('../utils/http')
+const { HttpStatusCodes } = require('web-service-utils/enums')
 const authService = require('./authService')
-
-const _getToken = (req) => {
-    const authString = req.get('Authorization')
-    const bearerType = "Bearer "
-    if (authString && authString.startsWith(bearerType) && authString.length > bearerType.length){
-        const token = authString.split(' ')[1]
-        return token
-    }
-    return null
-}
-
 module.exports = {
-    verifyAccessToken: (async (req, res, next) => {
-        try {
-            const accessToken = _getToken(req)
-            const userToken = await authService.verify(accessToken)
-            console.log("userToken", userToken)
-            req.user = userToken.user
-            req.accessToken = userToken.accessToken
-            next()                
-        } catch (error) {
-            next(error)
-        }
-    }),
     login: (async (req, res, next) => {
         try {
             const email = req.body.email

@@ -2,14 +2,13 @@ const mongoose = require('mongoose');
 const emailValidator = require('email-validator')
 const bcrypt = require('bcrypt');
 const { ObjectId } = require('mongodb');
-const {MemberRoleEnum, MemberStatusEnum} = require('../utils/enums')
+const { MemberRoleEnum, MemberStatusEnum } = require('web-service-utils/enums');
 
 const userOrganizationSchema = new mongoose.Schema({
     organizationId: {
         type: ObjectId,
         ref: 'Organization',
         required: true,
-        unique: true
     },
     organizationName: {
         type: String,

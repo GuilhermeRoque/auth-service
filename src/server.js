@@ -4,7 +4,6 @@ require('dotenv').config();
 const mongoose = require("mongoose")
 const app = require('./app'); 
 const http = require('http');
-const {redisClient} = require("./resources/auth/redisClient")
 
 const server = http.createServer(app);
 
@@ -22,7 +21,6 @@ mongoose.connect(process.env.DB_URL, {
     autoIndex: true
 })
 .then(() => {
-    redisClient.connect()
     server.listen(process.env.SERVER_PORT, console.log("Server listening on port", process.env.SERVER_PORT))
 })
 .catch((err) => console.log("Error connecting to database:\n", err))

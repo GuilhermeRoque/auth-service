@@ -1,9 +1,7 @@
 const express = require('express')
-const authController = require('../auth/authController')
 const router = express.Router()
 const organizationsController = require('./organizationsController')
 
-router.use(authController.verifyAccessToken)
 router.post('/', organizationsController.create)
 router.get('/:id', organizationsController.get)
 router.get('/', organizationsController.getAll)

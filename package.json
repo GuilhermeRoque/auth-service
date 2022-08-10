@@ -28,7 +28,8 @@
     "redis": "^4.2.0",
     "swagger-autogen": "^2.18.8",
     "swagger-ui-express": "^4.1.4",
-    "util": "^0.12.4"
+    "util": "^0.12.4",
+    "web-service-utils": "github:GuilhermeRoque/web-service-utils"
   },
   "devDependencies": {
     "chai": "^4.3.4",

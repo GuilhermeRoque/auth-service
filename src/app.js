@@ -6,8 +6,8 @@ const express = require('express');
 const swaggerUi = require('swagger-ui-express')
 const swaggerFile = require('./resources/doc/swagger_output.json')
 const cookieParser = require('cookie-parser');
-const {ServiceError} = require("./service/serviceErrors")
-const HttpStatusCodes = require('./resources/utils/http')
+const { HttpStatusCodes } = require('web-service-utils/enums');
+const { ServiceError } = require('web-service-utils/serviceErrors');
 
 swaggerFile.host = process.env.SWAGGER_HOST
 
@@ -33,6 +33,8 @@ app.use('/users', usersRouter);
 app.use("/auth", authRouter);
 app.use('/organizations', organizationsRouter);
 app.use(async (error, req, res, next) =>{
+    console.log("Handling error...")
+    console.log(error)
     if (error instanceof ServiceError){
         res.status(error.httpStatusCode).send({
             message: error.message, 
@@ -41,7 +43,6 @@ app.use(async (error, req, res, next) =>{
     }else{
         const message = 'Unexpected error'
         console.log(message)
-        console.log(error)
         res.status(HttpStatusCodes.INTERNAL_SERVER).send({
             message: message, 
         })    
