@@ -29,6 +29,10 @@ app.use(cookieParser())
 app.options("*", (async (req, res, next) => {res.status(200).send()}))
 
 
+app.use((async(req, res, next)=>{
+    req.user=req.headers.user?JSON.parse(req.headers.user):null
+    next()
+}))
 app.use('/users', usersRouter);
 app.use("/auth", authRouter);
 app.use('/organizations', organizationsRouter);

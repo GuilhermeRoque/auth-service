@@ -28,9 +28,7 @@ module.exports = {
     get: (async (req, res, next) => {
         try {
             const id = req.params.id
-            const caller = req.user
-            console.log('user', req.user)
-            console.log('userId', req.userId)
+            const caller = JSON.parse(req.headers.user)
             const userRegistered = await userService.getById(id, caller)
             res.status(HttpStatusCodes.OK).send(userRegistered)                
         } catch (error) {
