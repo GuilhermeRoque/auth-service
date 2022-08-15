@@ -33,26 +33,12 @@ module.exports = {
     }),
     
     refresh: (async (req, res, next) => {
-        const cookies = req.cookies;
-        const refreshToken = cookies?.jwt;
-        if (!refreshToken) return res.status(HttpStatusCodes.UNAUTHORIZED).send({message: "Token missing"});
+        if (!req.user_refresh) return res.status(HttpStatusCodes.UNAUTHORIZED).send({message: "Token missing"});
         try {
-            const acessToken = await authService.refresh(refreshToken)
+            const acessToken = await authService.refresh(req.user_refresh)
             return res.status(HttpStatusCodes.OK).send({accessToken: acessToken})
         } catch (error) {
             next(error)            
         }
     }),
-
-    logout: (async (req, res, next) => {
-        const cookies = req.cookies;
-        const refreshToken = cookies?.jwt;
-        const accessToken = _getToken(req)
-        try {
-            await authService.signout(accessToken, refreshToken)
-            res.sendStatus(HttpStatusCodes.OK)
-        } catch (error) {
-           next(error) 
-        }
-    })
 }

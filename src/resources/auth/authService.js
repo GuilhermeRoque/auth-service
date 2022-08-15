@@ -12,7 +12,7 @@ async function createAccessToken(user){
     return signAsync(
         {user: user},
         process.env.ACCESS_TOKEN_SECRET, 
-        {expiresIn: ACCESS_TOKEN_TIMEOUT})
+        {expiresIn: '30s'})
 }
 
 async function createRefreshToken(user){

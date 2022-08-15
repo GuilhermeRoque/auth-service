@@ -12,7 +12,6 @@ const userOrganizationSchema = new mongoose.Schema({
     },
     organizationName: {
         type: String,
-        unique: true,
         required: true,
     },
     role: {

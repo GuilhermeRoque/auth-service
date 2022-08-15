@@ -4,6 +4,7 @@ const organizationService = require("./organizationsService")
 module.exports = {
     create : (async (req, res, next) => {
         try {
+            console.log("CREATE CRONTROLLER ORGANIZATION")
             const organization = req.body
             const caller = req.user
             const accessToken = req.accessToken
@@ -28,9 +29,9 @@ module.exports = {
         
     get: (async (req, res, next) => {
         try {
+            const caller = req.user
             const organizationId = req.params.id
-            const filter = {_id:organizationId}
-            const organization = await organizationService.getOne(filter)
+            const organization = await organizationService.getById(organizationId, caller)
             res.status(HttpStatusCodes.OK).send(organization)
         } catch (error) {
             next(error)
@@ -49,6 +50,7 @@ module.exports = {
 
     inviteMember: (async (req, res, next) => {
         try {
+            console.log("INVITE MEMBER CONTROLLER")
             const invite = req.body
             const caller = req.user
             const id = req.params.id
@@ -65,8 +67,7 @@ module.exports = {
             const id = req.params.id
             const memberId = req.params.memberId
             const member = req.body
-            const accessToken = req.accessToken
-            const memberUpdated = await organizationService.updateMember(id, memberId, member, caller, accessToken)
+            const memberUpdated = await organizationService.updateMember(id, memberId, member, caller)
             res.status(HttpStatusCodes.OK).send(memberUpdated)
         } catch (error) {
             next(error)            

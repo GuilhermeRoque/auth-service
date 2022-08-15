@@ -3,8 +3,7 @@ const { MemberRoleEnum, MemberStatusEnum } = require('web-service-utils/enums');
 const ServiceBase = require('web-service-utils/serviceBase')
 const {User, UserOrganization} = require('../users/usersModel')
 const { ForbiddenError, RoleError, NotFoundError, FailedSanityCheckError } = require('web-service-utils/serviceErrors')
-// const redisClient = require('../auth/redisClient')
-// const authService = require('../auth/authService')
+const authService = require('../auth/authService')
 
 class MemberError extends ForbiddenError{
     constructor(user){
@@ -27,7 +26,6 @@ class ServiceOrganization extends ServiceBase{
     async create (organization, caller, accessToken){
         try{
             const userId = caller._id
-            const userEmail = caller.email
 
             // ADD new member to organization.members
             const newOrganization = new this.model(organization)
@@ -39,7 +37,8 @@ class ServiceOrganization extends ServiceBase{
 
             const member = new OrganizationMember({
                 userId: userId,
-                userEmail: userEmail,
+                userEmail: caller.email,
+                userName : caller.name,
                 ...userPermission
             })
             newOrganization.members.push(member)            
@@ -55,11 +54,7 @@ class ServiceOrganization extends ServiceBase{
                 }))
             await user.save()
             
-            // user has new organization role: deny current accessToken 
-            // await authService.removeAccessToken(accessToken)
-            // const newAccessToken = await authService.createAccessToken(user.toJSON())
-
-            // return organization created
+            const newAccessToken = await authService.createAccessToken(user.toJSON())
             return {organization: organizationCreated, accessToken: newAccessToken}
 
         }catch(error){
@@ -78,9 +73,16 @@ class ServiceOrganization extends ServiceBase{
         return await this._update(organization, id)
     }
 
+    async getById(id, caller){
+        const organization = await this._getById(id)
+        this._checkRoleNeeded(organization, caller, MemberRoleEnum.USER)
+        return organization
+    }
+    
     async getAll(filter, caller){
         const user = await User.findById(caller._id)
         const organizationIds = user.userOrganizations.map((userOrganization)=>userOrganization.organizationId)
+        
         const userFilter = {...filter, '_id': { $in:  organizationIds}}
         return await this.model.find(userFilter)
     }
@@ -93,20 +95,28 @@ class ServiceOrganization extends ServiceBase{
         if (!user) throw new NotFoundError(userFilter)
         const member = new OrganizationMember({
             userId: user._id,
+            userName: user.name,
+            userEmail: user.email,
             role: invite.role,
             status: MemberStatusEnum.INVITED
         })
         organization.members.push(member)
-        user.userOrganizations.push(organization._id)
+        const userOrganization = new UserOrganization({
+            organizationId: organization._id,
+            organizationName: organization.name,
+            role: invite.role,
+            status: MemberStatusEnum.INVITED
+        })
+        user.userOrganizations.push(userOrganization)
         await organization.save()
         await user.save()
         return member
     }
 
-    async updateMember(id, memberId, member, caller, accessToken){
+    async updateMember(id, memberId, member, caller){
         const organization = await this._getById(id)
-        const memberRegistered = this._getMemberById(organization, memberId)
-        const isMemberEqualCaller = memberRegistered.userId === caller._id
+        const memberRegistered = this._getMemberById(organization, memberId, caller)
+        const isMemberEqualCaller = memberRegistered.userId.toString() === caller._id
         const isMemberOwner =  memberRegistered.role === MemberRoleEnum.OWNER
 
         if(!isMemberEqualCaller) {
@@ -121,21 +131,13 @@ class ServiceOrganization extends ServiceBase{
         // There is actually only INVITED and ACTIVE status, check it
         if(member.status){
             if((memberRegistered.status !== MemberStatusEnum.INVITED) | (member.status !== MemberStatusEnum.ACTIVE)) {
-                throw new FailedSanityCheckError((
-                    `Only possible update invited to active member status. 
-                    To accept an invite the member status must be ${MemberStatusEnum.INVITED}`))
+                throw new FailedSanityCheckError(('Only possible update invited to active member status'))
             }    
         }
-        memberRegistered.status = member.status?member.status:memberRegistered.status
-        memberRegistered.role = member.role?member.role:memberRegistered.role
+        memberRegistered.status = member.status !== undefined?member.status:memberRegistered.status
+        memberRegistered.role = member.role !== undefined?member.role:memberRegistered.role
 
         let newAccessToken = undefined
-        // if(isMemberEqualCaller) {
-        //     await authService.removeAccessToken(accessToken)
-        //     newAccessToken = await authService.createAccessToken(caller)
-        // } 
-        // else redisClient.pushDenyListUserId(member.userId)
-
         await organization.save()
 
         return {member: memberRegistered, accessToken: newAccessToken}
@@ -185,7 +187,7 @@ class ServiceOrganization extends ServiceBase{
 
     }
 
-    _getMemberById(organization, id){
+    _getMemberById(organization, id, caller){
         const memberIndex = this._findMemberIndexById(organization, id)
         if (memberIndex === -1) throw new MemberError(caller)
         return organization.members[memberIndex]
@@ -194,43 +196,4 @@ class ServiceOrganization extends ServiceBase{
 }
 
 
-
 module.exports = new ServiceOrganization()
-
-
-
-
-
-
-// subDocuments: (async (req, res, next) => {
-//     try {
-//         const organization =  await Organization.findById(req.params.id)
-//         if (organization){
-//             const idUser = req.user._id
-//             const index = organization.members.findIndex(member => {
-//                 return member.user == idUser;
-//             });
-//             if (index > -1){
-//                 const subDocument = req.params.subDocument
-//                 const subDocuments = ["applications", "lora-profiles", "service-profiles"]
-//                 if(subDocuments.includes(subDocument)){
-
-//                     // proxy request here
-
-//                 }else{
-//                     res.status(404).send({message: "Resource unknown"})
-//                 }
-//                 organization.members.splice(index, 1)
-//                 await organization.save()
-
-//             }else{
-//                 // user not belongs to organization
-//                 res.status(403).send()
-//             }             
-//         }else{
-//             res.status(404).send({message: "Organization not found"})
-//         }   
-//     } catch (error) {
-//         next(error)            
-//     }
-// }),

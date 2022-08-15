@@ -10,7 +10,6 @@
     "create-keys": "node src/auth/createKeys.js"
   },
   "dependencies": {
-    "api-gateway": "github:GuilhermeRoque/api-gateway-auth",
     "axios": "^0.27.2",
     "bcrypt": "^5.0.1",
     "cookie-parser": "^1.4.6",
