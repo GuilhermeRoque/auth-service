@@ -35,8 +35,12 @@ module.exports = {
     refresh: (async (req, res, next) => {
         if (!req.user_refresh) return res.status(HttpStatusCodes.UNAUTHORIZED).send({message: "Token missing"});
         try {
-            const acessToken = await authService.refresh(req.user_refresh)
-            return res.status(HttpStatusCodes.OK).send({accessToken: acessToken})
+            const credentials = await authService.refresh(req.user_refresh)
+            return res.status(HttpStatusCodes.OK).send({
+                message: "Successfull authentication",
+                user: credentials.user, 
+                accessToken: credentials.accessToken
+            })
         } catch (error) {
             next(error)            
         }

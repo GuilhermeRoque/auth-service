@@ -21,7 +21,6 @@ app.use(express.urlencoded({ extended: false }));
 app.use((async(req, res, next)=>{
     req.user=req.headers.user?JSON.parse(req.headers.user):null
     req.user_refresh = req.headers.user_refresh
-    console.log("USER REFRESH",req.user_refresh)
     next()
 }))
 app.use('/users', usersRouter);

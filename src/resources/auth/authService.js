@@ -12,7 +12,7 @@ async function createAccessToken(user){
     return signAsync(
         {user: user},
         process.env.ACCESS_TOKEN_SECRET, 
-        {expiresIn: '30s'})
+        {expiresIn: ACCESS_TOKEN_TIMEOUT})
 }
 
 async function createRefreshToken(user){
@@ -38,7 +38,7 @@ async function sign(email, password){
 async function refresh(userId){
     const user =  await User.findById(userId)
     const accessToken = await signAsync({user: user.toJSON()}, process.env.ACCESS_TOKEN_SECRET,{ expiresIn: ACCESS_TOKEN_TIMEOUT });
-    return accessToken
+    return {user: user, accessToken: accessToken}
 }
 
 
