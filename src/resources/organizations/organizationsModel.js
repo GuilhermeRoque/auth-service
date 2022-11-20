@@ -30,6 +30,14 @@ const organizationMember = new mongoose.Schema({
 
 },{ collection: 'organizationMembers' })
 
+const timeSeriesDB = new mongoose.Schema({
+    orgId : {type: String},
+    username : {type: String},
+    password : {type: String},
+    bucketId : {type: String},
+    token : {type: String}
+})
+
 const organizationSchema = new mongoose.Schema({
     name: {
         type: String, 
@@ -38,6 +46,9 @@ const organizationSchema = new mongoose.Schema({
     },
     description: {
         type: String, 
+    },
+    timeSeriesDB: {
+        type: timeSeriesDB
     },
     members: [organizationMember],
 }, { collection: 'organizations' })

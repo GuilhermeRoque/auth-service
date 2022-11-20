@@ -2,7 +2,7 @@ const jwt = require('jsonwebtoken');
 const {User} = require('../users/usersModel')
 const bcrypt = require('bcrypt')
 const {promisify} = require('util');
-const { UnauthorizedError } = require('web-service-utils/serviceErrors');
+const { UnauthorizedError, NotFoundError } = require('web-service-utils/serviceErrors');
 const signAsync = promisify(jwt.sign)
 
 const ACCESS_TOKEN_TIMEOUT = process.env.ACCESS_TOKEN_TIMEOUT
@@ -37,6 +37,7 @@ async function sign(email, password){
 
 async function refresh(userId){
     const user =  await User.findById(userId)
+    if(!user) throw new NotFoundError({_id: userId})
     const accessToken = await signAsync({user: user.toJSON()}, process.env.ACCESS_TOKEN_SECRET,{ expiresIn: ACCESS_TOKEN_TIMEOUT });
     return {user: user, accessToken: accessToken}
 }
