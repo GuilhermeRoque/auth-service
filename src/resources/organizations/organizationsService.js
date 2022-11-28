@@ -64,18 +64,18 @@ class ServiceOrganization extends ServiceBase{
 
     async deleteById(id, caller){
         const organization = await this._getById(id)
-        this._checkRoleNeeded(organization, caller, MemberRoleEnum.OWNER)
+        this._checkRoleStatusNeeded(organization, caller, MemberRoleEnum.OWNER)
         return await this._deleteById(id)
     }
 
     async update(organization, id, caller){
-        this._checkRoleNeeded(organization, caller, MemberRoleEnum.OWNER)
+        this._checkRoleStatusNeeded(organization, caller, MemberRoleEnum.OWNER)
         return await this._update(organization, id)
     }
 
     async getById(id, caller){
         const organization = await this._getById(id)
-        this._checkRoleNeeded(organization, caller, MemberRoleEnum.USER)
+        this._checkRoleStatusNeeded(organization, caller, MemberRoleEnum.USER, MemberStatusEnum.INVITED)
         return organization
     }
     
@@ -89,7 +89,7 @@ class ServiceOrganization extends ServiceBase{
 
     async inviteMember(id, invite, caller){
         const organization = await this._getById(id)
-        this._checkRoleNeeded(organization, caller, MemberRoleEnum.OWNER)
+        this._checkRoleStatusNeeded(organization, caller, MemberRoleEnum.OWNER)
         const userFilter =  {email: invite.email}
         const user =  await User.findOne(userFilter)
         if (!user) throw new NotFoundError(userFilter)
@@ -115,18 +115,25 @@ class ServiceOrganization extends ServiceBase{
 
     async updateMember(id, memberId, member, caller){
         const organization = await this._getById(id)
+        
         const memberRegistered = this._getMemberById(organization, memberId, caller)
         const isMemberEqualCaller = memberRegistered.userId.toString() === caller._id
         const isMemberOwner =  memberRegistered.role === MemberRoleEnum.OWNER
+
+        const user =  await User.findById(memberRegistered.userId)
+        if (!user) throw new NotFoundError({_id:memberRegistered.userId})
+        const indexOrg = user.userOrganizations.findIndex(userOrganization => {return userOrganization.organizationId.toString()===id})
+        const userOrganization = user.userOrganizations[indexOrg]
+
 
         if(!isMemberEqualCaller) {
             // if the other member is OWNER deny update
             if(isMemberOwner) throw new ForbiddenError(memberRegistered, "Owner member can only be uptated by himself")
             // only owner can update other members
-            this._checkRoleNeeded(organization, caller, MemberRoleEnum.OWNER)
+            this._checkRoleStatusNeeded(organization, caller, MemberRoleEnum.OWNER)
         }else if (member.role){
             // if the user is updating himself, the role privilege can only decrease
-            this._checkRoleNeeded(organization, caller, member.role)
+            this._checkRoleStatusNeeded(organization, caller, member.role)
         }
         // There is actually only INVITED and ACTIVE status, check it
         if(member.status){
@@ -134,11 +141,17 @@ class ServiceOrganization extends ServiceBase{
                 throw new FailedSanityCheckError(('Only possible update invited to active member status'))
             }    
         }
-        memberRegistered.status = member.status !== undefined?member.status:memberRegistered.status
-        memberRegistered.role = member.role !== undefined?member.role:memberRegistered.role
+        const newStatus = member.status !== undefined?member.status:memberRegistered.status
+        const newRole = member.role !== undefined?member.role:memberRegistered.role
+        
+        memberRegistered.status = newStatus
+        memberRegistered.role = newRole
+        userOrganization.status = newStatus
+        userOrganization.role = newRole
 
-        let newAccessToken = undefined
+        const newAccessToken = await authService.createAccessToken(user.toJSON())
         await organization.save()
+        await user.save()
 
         return {member: memberRegistered, accessToken: newAccessToken}
     }
@@ -146,7 +159,7 @@ class ServiceOrganization extends ServiceBase{
     async removeUser(id, userId, caller){
         const organization = await this._getById(id)
         // only owner can remove other members
-        if(userId !== caller._id) this._checkRoleNeeded(organization, caller, MemberRoleEnum.OWNER)
+        if(userId !== caller._id) this._checkRoleStatusNeeded(organization, caller, MemberRoleEnum.OWNER)
         const memberIndex = this._findMemberIndex(organization, userId)
         if (memberIndex === -1) throw new MemberError(caller)
         organization.members.splice(memberIndex, 1)
@@ -156,13 +169,13 @@ class ServiceOrganization extends ServiceBase{
 
     async _getOrganization(id, caller, roleNeeded){
         const organization = await this._getById(id)
-        this._checkRoleNeeded(organization, caller, roleNeeded) 
+        this._checkRoleStatusNeeded(organization, caller, roleNeeded) 
 
     }
 
-    _checkRoleNeeded(organization, caller, roleNeeded) {
+    _checkRoleStatusNeeded(organization, caller, roleNeeded, statusNeeded=MemberStatusEnum.ACTIVE) {
         const member = this._getMember(organization, caller)
-        if (member.status !== MemberStatusEnum.ACTIVE) throw new MemberStatusError(member, MemberStatusEnum.ACTIVE)
+        if (member.status > statusNeeded) throw new MemberStatusError(member, statusNeeded)
         if (member.role > roleNeeded) throw new RoleError(member, roleNeeded)
     }
 

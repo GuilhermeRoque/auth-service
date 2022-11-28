@@ -50,7 +50,6 @@ module.exports = {
 
     inviteMember: (async (req, res, next) => {
         try {
-            console.log("INVITE MEMBER CONTROLLER")
             const invite = req.body
             const caller = req.user
             const id = req.params.id

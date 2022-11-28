@@ -7,7 +7,6 @@ const organizationMember = new mongoose.Schema({
         type: ObjectId,
         ref: 'User',
         required: true,
-        unique: true
     },
     userEmail: {
         type: String,
