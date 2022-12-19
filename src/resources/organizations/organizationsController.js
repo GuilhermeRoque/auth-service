@@ -4,7 +4,6 @@ const organizationService = require("./organizationsService")
 module.exports = {
     create : (async (req, res, next) => {
         try {
-            console.log("CREATE CRONTROLLER ORGANIZATION")
             const organization = req.body
             const caller = req.user
             const accessToken = req.accessToken
