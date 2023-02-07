@@ -7,7 +7,7 @@ module.exports = {
             const password = req.body.password
             if ((!email) | (!password)) return res.status(400).send({message: "Email and password required"})
             const credentials = await authService.sign(email, password)
-            const secure = process.env.PRODUCTION? true:null
+            const secure = process.env.APP_ENV==='production'
             
             // Creates Secure Cookie with refresh token
             res.cookie(
