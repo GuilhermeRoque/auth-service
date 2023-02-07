@@ -3,15 +3,11 @@ require('dotenv').config();
 const fs = require('fs');
 
 if(!process.env.ACCESS_TOKEN_SECRET){
-    const ACCESS_TOKEN_SECRET  = fs.readFileSync(process.env.ACCESS_SECRET)
-    process.env.ACCESS_TOKEN_SECRET = ACCESS_TOKEN_SECRET
-    console.log("Reading access token from file", process.env.ACCESS_SECRET, "and setting into env var ACCESS_TOKEN_SECRET")
+    process.env.ACCESS_TOKEN_SECRET = fs.readFileSync(process.env.ACCESS_SECRET)
 }
 if(!process.env.REFRESH_TOKEN_SECRET){
     process.env.REFRESH_TOKEN_SECRET  = fs.readFileSync(process.env.REFRESH_SECRET)
-    console.log("Reading refresh token from file", process.env.REFRESH_SECRET, "and setting into env var REFRESH_TOKEN_SECRET")
 }
-console.log(process.env)
 
 const mongoose = require("mongoose")
 const app = require('./app'); 

@@ -9,19 +9,22 @@ const ACCESS_TOKEN_TIMEOUT = process.env.ACCESS_TIMEOUT
 const REFRESH_TOKEN_TIMEOUT = process.env.REFRESH_TIMEOUT
 const ACCESS_TOKEN_SECRET = process.env.ACCESS_TOKEN_SECRET
 const REFRESH_TOKEN_SECRET = process.env.REFRESH_TOKEN_SECRET
+const SECRET = process.env.SECRET
 
 async function createAccessToken(user){
     return signAsync(
         {user: user},
-        ACCESS_TOKEN_SECRET, 
-        {expiresIn: ACCESS_TOKEN_TIMEOUT})
+        {key:ACCESS_TOKEN_SECRET, passphrase: SECRET}, 
+        {algorithm: "RS256", expiresIn: ACCESS_TOKEN_TIMEOUT}
+    )
 }
 
 async function createRefreshToken(user){
     return signAsync(
         {userId: user._id.toString()},
-        REFRESH_TOKEN_SECRET, 
-        {expiresIn: REFRESH_TOKEN_TIMEOUT})
+        {key:REFRESH_TOKEN_SECRET, passphrase: SECRET}, 
+        {algorithm: "RS256", expiresIn: REFRESH_TOKEN_TIMEOUT}
+    )
 }
 
 async function sign(email, password){
@@ -40,7 +43,7 @@ async function sign(email, password){
 async function refresh(userId){
     const user =  await User.findById(userId)
     if(!user) throw new NotFoundError({_id: userId})
-    const accessToken = await signAsync({user: user.toJSON()}, process.env.ACCESS_TOKEN_SECRET, {expiresIn: ACCESS_TOKEN_TIMEOUT, algorithm: "RS256"});
+    const accessToken = await createAccessToken(user.toJSON())
     return {user: user, accessToken: accessToken}
 }
 

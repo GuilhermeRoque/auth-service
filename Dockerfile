@@ -1,4 +1,4 @@
-FROM node:17-alpine3.14
+FROM node:16-buster
 WORKDIR /root
 COPY package*.json ./
 COPY access-token.key ./
